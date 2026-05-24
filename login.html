@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vendly — Log In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #16a34a;
+      --green-light: #dcfce7;
+      --green-dark: #15803d;
+      --green-pale: #f0fdf4;
+      --black: #0f1a0f;
+      --grey-dark: #374151;
+      --grey-mid: #6b7280;
+      --grey-light: #e5e7eb;
+      --grey-pale: #f9fafb;
+      --white: #ffffff;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Outfit', sans-serif;
+      color: var(--black);
+      background: var(--grey-pale);
+    }
+
+    /* ── Layout ── */
+    .page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    @media (min-width: 900px) {
+      .page { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ── Left panel (decorative) ── */
+    .panel-left {
+      display: none;
+      position: relative;
+      background: var(--green-dark);
+      overflow: hidden;
+      padding: 56px 52px;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    @media (min-width: 900px) {
+      .panel-left { display: flex; }
+    }
+
+    /* subtle dot grid */
+    .panel-left::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+
+    /* large decorative circle */
+    .panel-left::after {
+      content: '';
+      position: absolute;
+      bottom: -140px;
+      right: -140px;
+      width: 460px;
+      height: 460px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      border: 60px solid rgba(255,255,255,0.06);
+    }
+
+    .panel-logo {
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel-logo a {
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-logo-mark {
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--white);
+    }
+
+    .panel-logo-text {
+      font-family: 'Instrument Serif', serif;
+      font-size: 22px;
+      color: var(--white);
+      letter-spacing: -0.3px;
+    }
+
+    .panel-body {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 0;
+    }
+
+    .panel-headline {
+      font-family: 'Instrument Serif', serif;
+      font-size: 42px;
+      line-height: 1.2;
+      color: var(--white);
+      margin-bottom: 20px;
+    }
+
+    .panel-headline em {
+      font-style: italic;
+      color: #86efac;
+    }
+
+    .panel-sub {
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.65;
+      max-width: 320px;
+    }
+
+    /* Store preview card */
+    .preview-card {
+      margin-top: 52px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(8px);
+      max-width: 340px;
+    }
+
+    .preview-card-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .preview-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4ade80, #16a34a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: 'Instrument Serif', serif;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .preview-info strong {
+      display: block;
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .preview-info span {
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+    }
+
+    .preview-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .preview-stat {
+      background: rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .preview-stat strong {
+      display: block;
+      color: #86efac;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .preview-stat span {
+      color: rgba(255,255,255,0.45);
+      font-size: 11px;
+      font-weight: 400;
+    }
+
+    /* panel footer */
+    .panel-footer {
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel-footer p {
+      font-size: 13px;
+      color: rgba(255,255,255,0.35);
+    }
+
+    /* ── Right panel (form) ── */
+    .panel-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      min-height: 100vh;
+    }
+
+    @media (min-width: 900px) {
+      .panel-right {
+        padding: 60px 48px;
+      }
+    }
+
+    .form-wrapper {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    /* Mobile-only logo */
+    .mobile-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 40px;
+      text-decoration: none;
+    }
+
+    @media (min-width: 900px) {
+      .mobile-logo { display: none; }
+    }
+
+    .mobile-logo-mark {
+      width: 34px;
+      height: 34px;
+      background: var(--green);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .mobile-logo-text {
+      font-family: 'Instrument Serif', serif;
+      font-size: 20px;
+      color: var(--black);
+    }
+
+    /* Form header */
+    .form-header {
+      margin-bottom: 32px;
+    }
+
+    .form-header h1 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 32px;
+      color: var(--black);
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    .form-header h1 em {
+      font-style: italic;
+      color: var(--green);
+    }
+
+    .form-header p {
+      font-size: 14px;
+      color: var(--grey-mid);
+      font-weight: 400;
+    }
+
+    .form-header p a {
+      color: var(--green);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .form-header p a:hover { text-decoration: underline; }
+
+    /* Form fields */
+    .field {
+      margin-bottom: 18px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--grey-dark);
+      margin-bottom: 7px;
+      letter-spacing: 0.1px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--grey-mid);
+      display: flex;
+      pointer-events: none;
+      transition: color 0.2s;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      height: 48px;
+      padding: 0 14px 0 42px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--black);
+      background: var(--white);
+      border: 1.5px solid var(--grey-light);
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+
+    .input-wrap input::placeholder {
+      color: #c0c8d0;
+      font-weight: 300;
+    }
+
+    .input-wrap input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    }
+
+    .input-wrap:focus-within .input-icon {
+      color: var(--green);
+    }
+
+    /* Password toggle */
+    .pw-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--grey-mid);
+      display: flex;
+      padding: 4px;
+      border-radius: 4px;
+      transition: color 0.2s;
+    }
+
+    .pw-toggle:hover { color: var(--grey-dark); }
+
+    /* Forgot password row */
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 7px;
+    }
+
+    .field-row label {
+      margin-bottom: 0;
+    }
+
+    .forgot-link {
+      font-size: 12px;
+      color: var(--green);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .forgot-link:hover { text-decoration: underline; }
+
+    /* Remember me checkbox */
+    .remember-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .custom-checkbox {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      border: 1.5px solid var(--grey-light);
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      background: var(--white);
+    }
+
+    .custom-checkbox.checked {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .custom-checkbox svg { display: none; }
+    .custom-checkbox.checked svg { display: block; }
+
+    .remember-row span {
+      font-size: 13px;
+      color: var(--grey-mid);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Submit button */
+    .btn-submit {
+      width: 100%;
+      height: 52px;
+      background: var(--green);
+      color: var(--white);
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-submit:hover {
+      background: var(--green-dark);
+      box-shadow: 0 6px 18px rgba(22, 163, 74, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .btn-submit:active { transform: translateY(0); }
+
+    /* Ripple */
+    .btn-submit .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      transform: scale(0);
+      animation: ripple 0.55s linear;
+      pointer-events: none;
+    }
+
+    @keyframes ripple {
+      to { transform: scale(4); opacity: 0; }
+    }
+
+    /* Loading spinner */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn-submit.loading .btn-label { display: none; }
+    .btn-submit.loading .spinner { display: block; }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--grey-light);
+    }
+
+    .divider span {
+      font-size: 12px;
+      color: var(--grey-mid);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* Signup prompt */
+    .signup-prompt {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 14px;
+      color: var(--grey-mid);
+    }
+
+    .signup-prompt a {
+      color: var(--green);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .signup-prompt a:hover { text-decoration: underline; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--black);
+      color: var(--white);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 11px 20px;
+      border-radius: 100px;
+      opacity: 0;
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast.error { background: #dc2626; }
+
+    /* Error message */
+    .field-error {
+      font-size: 12px;
+      color: #dc2626;
+      margin-top: 5px;
+      display: none;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .field-error.show { display: flex; }
+
+    /* Input error state */
+    .input-wrap input.error-input {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
+    }
+
+    /* Entrance animation */
+    .form-wrapper {
+      animation: fadeUp 0.45s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel-body {
+      animation: fadeUp 0.5s ease 0.1s both;
+    }
+
+    /* Accessibility */
+    :focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ─── Left decorative panel ─── -->
+  <aside class="panel-left">
+    <div class="panel-logo">
+      <a href="/">
+        <div class="panel-logo-mark">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+        </div>
+        <span class="panel-logo-text">Vendly</span>
+      </a>
+    </div>
+
+    <div class="panel-body">
+      <h2 class="panel-headline">Your store.<br/><em>Always open.</em></h2>
+      <p class="panel-sub">Log back in and see what's been added, update your products, and keep customers coming back — all without leaving WhatsApp.</p>
+
+      <div class="preview-card">
+        <div class="preview-card-top">
+          <div class="preview-avatar">A</div>
+          <div class="preview-info">
+            <strong>Amaka's Boutique</strong>
+            <span>vendly.com/amaka</span>
+          </div>
+        </div>
+        <div class="preview-stats">
+          <div class="preview-stat">
+            <strong>24</strong>
+            <span>Products</span>
+          </div>
+          <div class="preview-stat">
+            <strong>138</strong>
+            <span>Orders</span>
+          </div>
+          <div class="preview-stat">
+            <strong>4.9</strong>
+            <span>Rating</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <p>© 2025 Vendly · Made for Nigerian sellers</p>
+    </div>
+  </aside>
+
+  <!-- ─── Right form panel ─── -->
+  <main class="panel-right">
+    <div class="form-wrapper">
+
+      <!-- Mobile logo -->
+      <a href="/" class="mobile-logo">
+        <div class="mobile-logo-mark">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+        </div>
+        <span class="mobile-logo-text">Vendly</span>
+      </a>
+
+      <div class="form-header">
+        <h1>Welcome <em>back</em></h1>
+        <p>Don't have an account? <a href="/signup.html">Create one free</a></p>
+      </div>
+
+      <!-- Email field -->
+      <div class="field">
+        <label for="email">Email address</label>
+        <div class="input-wrap">
+          <span class="input-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2"/>
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+            </svg>
+          </span>
+          <input type="email" id="email" placeholder="you@example.com" autocomplete="email" />
+        </div>
+        <div class="field-error" id="email-error">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="email-error-text">Please enter a valid email</span>
+        </div>
+      </div>
+
+      <!-- Password field -->
+      <div class="field">
+        <div class="field-row">
+          <label for="password">Password</label>
+          <a href="/forgot-password.html" class="forgot-link">Forgot password?</a>
+        </div>
+        <div class="input-wrap">
+          <span class="input-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </span>
+          <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
+          <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Show password">
+            <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+        <div class="field-error" id="password-error">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="password-error-text">Password is required</span>
+        </div>
+      </div>
+
+      <!-- Remember me -->
+      <div class="remember-row" id="remember-row">
+        <div class="custom-checkbox" id="remember-checkbox" role="checkbox" aria-checked="false" tabindex="0">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <span id="remember-label">Keep me logged in</span>
+      </div>
+
+      <!-- Submit -->
+      <button class="btn-submit" id="login-btn" type="button">
+        <span class="btn-label">Log in to my store</span>
+        <div class="spinner"></div>
+      </button>
+
+      <div class="signup-prompt">
+        New to Vendly? <a href="/signup.html">Create your free store</a>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="12" y1="8" x2="12" y2="12"/>
+    <line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+  <span id="toast-text"></span>
+</div>
+
+<script>
+  // ── Ripple effect ──
+  const loginBtn = document.getElementById('login-btn');
+
+  loginBtn.addEventListener('click', function(e) {
+    const rect = this.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    const size = Math.max(rect.width, rect.height);
+    ripple.className = 'ripple';
+    ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX - rect.left - size/2}px;top:${e.clientY - rect.top - size/2}px`;
+    this.appendChild(ripple);
+    ripple.addEventListener('animationend', () => ripple.remove());
+    handleLogin();
+  });
+
+  // ── Password toggle ──
+  const pwInput = document.getElementById('password');
+  const pwToggle = document.getElementById('pw-toggle');
+  const eyeIcon = document.getElementById('eye-icon');
+
+  const eyeOpen = `<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>`;
+  const eyeClosed = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+
+  let pwVisible = false;
+  pwToggle.addEventListener('click', () => {
+    pwVisible = !pwVisible;
+    pwInput.type = pwVisible ? 'text' : 'password';
+    eyeIcon.innerHTML = pwVisible ? eyeClosed : eyeOpen;
+    pwToggle.setAttribute('aria-label', pwVisible ? 'Hide password' : 'Show password');
+  });
+
+  // ── Remember me checkbox ──
+  const checkbox = document.getElementById('remember-checkbox');
+  const rememberLabel = document.getElementById('remember-label');
+  let remembered = false;
+
+  function toggleRemember() {
+    remembered = !remembered;
+    checkbox.classList.toggle('checked', remembered);
+    checkbox.setAttribute('aria-checked', remembered);
+  }
+
+  checkbox.addEventListener('click', toggleRemember);
+  rememberLabel.addEventListener('click', toggleRemember);
+  checkbox.addEventListener('keydown', e => {
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleRemember(); }
+  });
+
+  // ── Validation ──
+  function showError(field, msg) {
+    const input = document.getElementById(field);
+    const error = document.getElementById(field + '-error');
+    const errorText = document.getElementById(field + '-error-text');
+    if (input) input.classList.add('error-input');
+    if (errorText) errorText.textContent = msg;
+    if (error) error.classList.add('show');
+  }
+
+  function clearError(field) {
+    const input = document.getElementById(field);
+    const error = document.getElementById(field + '-error');
+    if (input) input.classList.remove('error-input');
+    if (error) error.classList.remove('show');
+  }
+
+  document.getElementById('email').addEventListener('input', () => clearError('email'));
+  document.getElementById('password').addEventListener('input', () => clearError('password'));
+
+  function validate() {
+    let valid = true;
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showError('email', 'Please enter a valid email address');
+      valid = false;
+    }
+
+    if (!password) {
+      showError('password', 'Please enter your password');
+      valid = false;
+    }
+
+    return valid;
+  }
+
+  // ── Toast ──
+  let toastTimer;
+  function showToast(msg, type = '') {
+    const toast = document.getElementById('toast');
+    const text = document.getElementById('toast-text');
+    text.textContent = msg;
+    toast.className = 'toast' + (type ? ' ' + type : '');
+    clearTimeout(toastTimer);
+    // Force reflow
+    void toast.offsetWidth;
+    toast.classList.add('show');
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  // ── Login handler ──
+  function handleLogin() {
+    if (!validate()) return;
+
+    loginBtn.classList.add('loading');
+    loginBtn.disabled = true;
+
+    // Simulate auth delay — replace with real Supabase call
+    setTimeout(() => {
+      loginBtn.classList.remove('loading');
+      loginBtn.disabled = false;
+
+      // Demo: any email/pass works
+      // On success → redirect to dashboard
+      // window.location.href = '/dashboard.html';
+
+      showToast('Login successful — redirecting…');
+      setTimeout(() => {
+        // window.location.href = '/dashboard.html';
+      }, 1200);
+    }, 1600);
+  }
+
+  // Allow Enter key to submit
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !loginBtn.disabled) handleLogin();
+  });
+</script>
+</body>
+</html>
