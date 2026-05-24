@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendly — Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --green: #16a34a;
+            --green-light: #dcfce7;
+            --green-dark: #15803d;
+            --green-pale: #f0fdf4;
+            --black: #0f1a0f;
+            --grey-dark: #374151;
+            --grey-mid: #6b7280;
+            --grey-light: #e5e7eb;
+            --grey-pale: #f9fafb;
+            --white: #ffffff;
+            --sidebar-w: 240px;
+            --font-display: 'Instrument Serif', Georgia, serif;
+            --font-body: 'Outfit', sans-serif;
+            --red: #ef4444;
+            --red-pale: #fef2f2;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--grey-pale);
+            color: var(--black);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: var(--sidebar-w);
+            min-height: 100vh;
+            background: var(--white);
+            border-right: 1px solid var(--grey-light);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0;
+            z-index: 50;
+        }
+
+        .sidebar-logo {
+            padding: 28px 24px 24px;
+            font-family: var(--font-display);
+            font-size: 1.55rem;
+            color: var(--black);
+            letter-spacing: -0.02em;
+            text-decoration: none;
+            border-bottom: 1px solid var(--grey-light);
+            display: block;
+        }
+
+        .sidebar-logo span { color: var(--green); }
+
+        .sidebar-nav {
+            padding: 16px 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--grey-mid);
+            padding: 10px 12px 6px;
+            margin-top: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--grey-dark);
+            transition: all 0.18s;
+            text-decoration: none;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover {
+            background: var(--grey-pale);
+            color: var(--black);
+        }
+
+        .nav-item.active {
+            background: var(--green-pale);
+            color: var(--green-dark);
+            font-weight: 600;
+        }
+
+        .nav-item.active svg { stroke: var(--green); }
+
+        .nav-item svg {
+            stroke: var(--grey-mid);
+            flex-shrink: 0;
+            transition: stroke 0.18s;
+        }
+
+        .nav-item:hover svg { stroke: var(--black); }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--green-light);
+            color: var(--green-dark);
+            font-size: 0.62rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 100px;
+        }
+
+        .sidebar-footer {
+            padding: 16px 12px;
+            border-top: 1px solid var(--grey-light);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: background 0.18s;
+        }
+
+        .user-card:hover { background: var(--grey-pale); }
+
+        .user-avatar {
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            background: var(--green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .user-name {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .user-store {
+            font-size: 0.72rem;
+            color: var(--grey-mid);
+            margin-top: 1px;
+        }
+
+        /* MAIN */
+        .main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* TOP BAR */
+        .topbar {
+            position: sticky;
+            top: 0;
+            background: rgba(249,250,251,0.92);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--grey-light);
+            padding: 0 36px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 40;
+        }
+
+        .topbar-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            color: var(--black);
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-size: 0.855rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--green);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--green-dark);
+            box-shadow: 0 4px 16px rgba(22,163,74,0.25);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: var(--white);
+            color: var(--black);
+            border: 1.5px solid var(--grey-light);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--grey-dark);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--grey-mid);
+            padding: 9px 10px;
+        }
+
+        .btn-ghost:hover {
+            background: var(--grey-light);
+            color: var(--black);
+        }
+
+        /* CONTENT */
+        .content {
+            padding: 36px;
+            flex: 1;
+        }
+
+        /* STORE LINK BANNER */
+        .store-banner {
+            background: var(--black);
+            border-radius: 16px;
+            padding: 22px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            gap: 16px;
+        }
+
+        .store-banner-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .store-banner-icon {
+            width: 44px; height: 44px;
+            background: rgba(22,163,74,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .store-banner-label {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 4px;
+        }
+
+        .store-banner-link {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--white);
+            letter-spacing: -0.01em;
+        }
+
+        .store-banner-link span { color: #86efac; }
+
+        .store-banner-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .banner-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 16px;
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .banner-btn-copy {
+            background: rgba(255,255,255,0.1);
+            color: var(--white);
+        }
+
+        .banner-btn-copy:hover { background: rgba(255,255,255,0.18); }
+
+        .banner-btn-view {
+            background: var(--green);
+            color: white;
+        }
+
+        .banner-btn-view:hover { background: var(--green-dark); }
+
+        /* STATS */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border: 1.5px solid var(--grey-light);
+            border-radius: 14px;
+            padding: 22px 22px;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--green-light);
+            box-shadow: 0 4px 20px rgba(22,163,74,0.07);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .stat-label {
+            font-size: 0.78rem;
+            color: var(--grey-mid);
+            font-weight: 500;
+        }
+
+        .stat-icon {
+            width: 34px; height: 34px;
+            border-radius: 9px;
+            background: var(--green-pale);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: 1.9rem;
+            color: var(--black);
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-sub {
+            font-size: 0.72rem;
+            color: var(--grey-mid);
+        }
+
+        .stat-sub strong { color: var(--green); }
+
+        /* SECTION HEADER */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            color: var(--black);
+        }
+
+        .section-count {
+            font-size: 0.8rem;
+            color: var(--grey-mid);
+            margin-top: 2px;
+        }
+
+        /* ADD PRODUCT CARD */
+        .add-product-card {
+            background: var(--white);
+            border: 1.5px solid var(--grey-light);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 28px;
+            display: none;
+        }
+
+        .add-product-card.open { display: block; }
+
+        .add-product-title {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            color: var(--black);
+            margin-bottom: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            color: var(--grey-mid);
+            display: flex;
+            align-items: center;
+            transition: all 0.18s;
+        }
+
+        .close-btn:hover { background: var(--grey-light); color: var(--black); }
+
+        .product-form {
+            display: grid;
+            grid-template-columns: 160px 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .upload-zone {
+            width: 160px;
+            height: 160px;
+            border: 2px dashed var(--grey-light);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.22s;
+            gap: 8px;
+            background: var(--grey-pale);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--green);
+            background: var(--green-pale);
+        }
+
+        .upload-zone.has-image { border-style: solid; border-color: var(--green-light); }
+
+        .upload-zone img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .upload-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            border-radius: 10px;
+        }
+
+        .upload-zone.has-image:hover .upload-overlay { opacity: 1; }
+
+        .upload-text {
+            font-size: 0.72rem;
+            color: var(--grey-mid);
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .upload-zone:hover .upload-text { color: var(--green-dark); }
+        .upload-zone input[type="file"] { display: none; }
+
+        .form-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .field-group { display: flex; flex-direction: column; gap: 6px; }
+
+        .field-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--grey-dark);
+        }
+
+        .field-input {
+            padding: 11px 14px;
+            border: 1.5px solid var(--grey-light);
+            border-radius: 9px;
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            color: var(--black);
+            background: var(--white);
+            outline: none;
+            transition: border-color 0.2s;
+            width: 100%;
+        }
+
+        .field-input:focus { border-color: var(--green); }
+
+        .field-input::placeholder { color: var(--grey-mid); }
+
+        textarea.field-input {
+            resize: vertical;
+            min-height: 80px;
+            line-height: 1.6;
+        }
+
+        .price-input-wrap {
+            position: relative;
+        }
+
+        .price-prefix {
+            position: absolute;
+            left: 14px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.875rem;
+            color: var(--grey-mid);
+            font-weight: 600;
+        }
+
+        .price-input-wrap .field-input { padding-left: 38px; }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        /* PRODUCT GRID */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+            gap: 16px;
+        }
+
+        .product-card {
+            background: var(--white);
+            border: 1.5px solid var(--grey-light);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: all 0.22s;
+        }
+
+        .product-card:hover {
+            border-color: var(--grey-dark);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .product-thumb {
+            height: 148px;
+            background: var(--grey-pale);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-thumb img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+
+        .product-thumb-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%; height: 100%;
+        }
+
+        .product-actions-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.22s;
+        }
+
+        .product-card:hover .product-actions-overlay { opacity: 1; }
+
+        .overlay-btn {
+            width: 36px; height: 36px;
+            border-radius: 9px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.18s;
+            backdrop-filter: blur(4px);
+        }
+
+        .overlay-btn:hover { background: rgba(255,255,255,0.28); }
+        .overlay-btn.delete:hover { background: rgba(239,68,68,0.6); border-color: rgba(239,68,68,0.6); }
+
+        .product-info {
+            padding: 14px;
+        }
+
+        .product-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--black);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-desc-preview {
+            font-size: 0.72rem;
+            color: var(--grey-mid);
+            margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .product-price {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--green-dark);
+        }
+
+        .product-status {
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 100px;
+        }
+
+        .status-live {
+            background: var(--green-light);
+            color: var(--green-dark);
+        }
+
+        .status-hidden {
+            background: var(--grey-light);
+            color: var(--grey-mid);
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 64px 24px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 64px; height: 64px;
+            border-radius: 18px;
+            background: var(--green-pale);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+        }
+
+        .empty-title {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            color: var(--black);
+            margin-bottom: 8px;
+        }
+
+        .empty-sub {
+            font-size: 0.875rem;
+            color: var(--grey-mid);
+            max-width: 280px;
+            line-height: 1.65;
+            margin-bottom: 22px;
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            background: var(--black);
+            color: var(--white);
+            padding: 13px 20px;
+            border-radius: 11px;
+            font-size: 0.855rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 36px rgba(0,0,0,0.22);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 999;
+            max-width: 340px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success .toast-icon { color: #86efac; }
+        .toast.error .toast-icon { color: #fca5a5; }
+
+        /* MODAL OVERLAY */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.22s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: 18px;
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.22);
+            transform: scale(0.95) translateY(12px);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.open .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-title {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            color: var(--black);
+            margin-bottom: 10px;
+        }
+
+        .modal-sub {
+            font-size: 0.875rem;
+            color: var(--grey-mid);
+            line-height: 1.65;
+            margin-bottom: 28px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-danger {
+            background: var(--red);
+            color: white;
+        }
+
+        .btn-danger:hover { background: #dc2626; }
+
+        /* MOBILE TOPBAR */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 7px;
+            color: var(--black);
+        }
+
+        .mobile-menu-btn:hover { background: var(--grey-light); }
+
+        @media (max-width: 900px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.28s;
+            }
+
+            .sidebar.open { transform: translateX(0); }
+
+            .main { margin-left: 0; }
+
+            .mobile-menu-btn { display: flex; }
+
+            .stats-row { grid-template-columns: 1fr 1fr; }
+
+            .product-form { grid-template-columns: 1fr; }
+
+            .upload-zone { width: 100%; }
+
+            .store-banner { flex-direction: column; align-items: flex-start; }
+
+            .content { padding: 20px; }
+
+            .topbar { padding: 0 20px; }
+        }
+
+        @media (max-width: 560px) {
+            .stats-row { grid-template-columns: 1fr; }
+            .products-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+    <a href="#" class="sidebar-logo">Vend<span>ly</span></a>
+
+    <nav class="sidebar-nav">
+        <div class="nav-label">Main</div>
+        <button class="nav-item active" onclick="setPage('products')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="7" height="9" rx="1"/><rect x="15" y="3" width="7" height="5" rx="1"/>
+                <rect x="15" y="12" width="7" height="9" rx="1"/><rect x="2" y="16" width="7" height="5" rx="1"/>
+            </svg>
+            Dashboard
+        </button>
+        <button class="nav-item" onclick="setPage('products')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+            Products
+            <span class="nav-badge" id="nav-count">0</span>
+        </button>
+        <button class="nav-item" onclick="showToast('Orders coming in the next version', 'info')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            Orders
+        </button>
+
+        <div class="nav-label">Store</div>
+        <button class="nav-item" onclick="showToast('Analytics coming soon', 'info')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"/>
+                <line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            Analytics
+        </button>
+        <button class="nav-item" onclick="showToast('Settings coming soon', 'info')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+            </svg>
+            Settings
+        </button>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-card">
+            <div class="user-avatar">AD</div>
+            <div>
+                <div class="user-name">Amaka David</div>
+                <div class="user-store">vendly.com/amaka</div>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+            <div class="topbar-title">My Store</div>
+        </div>
+        <div class="topbar-actions">
+            <button class="btn btn-outline" onclick="viewStorefront()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+                View storefront
+            </button>
+            <button class="btn btn-primary" onclick="openAddForm()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Add product
+            </button>
+        </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <!-- STORE LINK BANNER -->
+        <div class="store-banner">
+            <div class="store-banner-left">
+                <div class="store-banner-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+                        <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="store-banner-label">Your store link</div>
+                    <div class="store-banner-link">vendly.com/<span>amaka</span></div>
+                </div>
+            </div>
+            <div class="store-banner-actions">
+                <button class="banner-btn banner-btn-copy" onclick="copyLink()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                    </svg>
+                    Copy link
+                </button>
+                <button class="banner-btn banner-btn-view" onclick="viewStorefront()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+                        <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                    Open store
+                </button>
+            </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-label">Total products</div>
+                    <div class="stat-icon">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 01-8 0"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value" id="stat-products">0</div>
+                <div class="stat-sub">products listed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-label">Store views</div>
+                    <div class="stat-icon">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">248</div>
+                <div class="stat-sub"><strong>+12</strong> this week</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-label">Orders sent</div>
+                    <div class="stat-icon">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">34</div>
+                <div class="stat-sub"><strong>+5</strong> this week</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-label">Store link</div>
+                    <div class="stat-icon">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">Live</div>
+                <div class="stat-sub"><strong>Active</strong> and visible</div>
+            </div>
+        </div>
+
+        <!-- ADD PRODUCT FORM -->
+        <div class="add-product-card" id="addProductCard">
+            <div class="add-product-title">
+                Add a new product
+                <button class="close-btn" onclick="closeAddForm()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="product-form">
+                <div>
+                    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                        <input type="file" id="fileInput" accept="image/*" onchange="handleImageUpload(event)">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        <div class="upload-text">Click to upload<br>product photo</div>
+                        <div class="upload-overlay">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-fields">
+                    <div class="field-group">
+                        <label class="field-label">Product name</label>
+                        <input type="text" class="field-input" id="productName" placeholder="e.g. Ankara Dress">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Description (optional)</label>
+                        <textarea class="field-input" id="productDesc" placeholder="Short description of the product..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-fields">
+                    <div class="field-group">
+                        <label class="field-label">Price (₦)</label>
+                        <div class="price-input-wrap">
+                            <span class="price-prefix">₦</span>
+                            <input type="number" class="field-input" id="productPrice" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-outline" onclick="closeAddForm()">Cancel</button>
+                        <button class="btn btn-primary" onclick="addProduct()">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            Save product
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRODUCTS -->
+        <div class="section-header">
+            <div>
+                <div class="section-title">Your products</div>
+                <div class="section-count" id="product-count-label">No products yet</div>
+            </div>
+            <button class="btn btn-outline" id="sortBtn" style="display:none" onclick="showToast('Sort coming soon', 'info')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                    <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+                    <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                </svg>
+                Sort
+            </button>
+        </div>
+
+        <div class="products-grid" id="productsGrid">
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <path d="M16 10a4 4 0 01-8 0"/>
+                    </svg>
+                </div>
+                <div class="empty-title">No products yet</div>
+                <div class="empty-sub">Add your first product and your store will be ready to share with customers.</div>
+                <button class="btn btn-primary" onclick="openAddForm()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Add your first product
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- DELETE MODAL -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+        <div class="modal-title">Remove this product?</div>
+        <div class="modal-sub">This will remove the product from your store immediately. Customers won't be able to see or order it anymore.</div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmDelete()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                    <path d="M10 11v6"/><path d="M14 11v6"/>
+                    <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                </svg>
+                Yes, remove it
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+    <svg class="toast-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <polyline points="20 6 9 17 4 12"/>
+    </svg>
+    <span id="toast-msg">Done</span>
+</div>
+
+<script>
+    let products = [];
+    let deleteTarget = null;
+    let uploadedImage = null;
+
+    // SIDEBAR TOGGLE
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // ADD FORM
+    function openAddForm() {
+        const card = document.getElementById('addProductCard');
+        card.classList.add('open');
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        document.getElementById('productName').focus();
+    }
+
+    function closeAddForm() {
+        document.getElementById('addProductCard').classList.remove('open');
+        resetForm();
+    }
+
+    function resetForm() {
+        document.getElementById('productName').value = '';
+        document.getElementById('productDesc').value = '';
+        document.getElementById('productPrice').value = '';
+        uploadedImage = null;
+        const zone = document.getElementById('uploadZone');
+        zone.classList.remove('has-image');
+        const prev = zone.querySelector('img');
+        if (prev) prev.remove();
+        const svg = zone.querySelector('svg');
+        const text = zone.querySelector('.upload-text');
+        if (svg) svg.style.display = '';
+        if (text) text.style.display = '';
+    }
+
+    // IMAGE UPLOAD
+    function handleImageUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            uploadedImage = ev.target.result;
+            const zone = document.getElementById('uploadZone');
+            zone.classList.add('has-image');
+            const existing = zone.querySelector('img');
+            if (existing) existing.remove();
+            const img = document.createElement('img');
+            img.src = uploadedImage;
+            zone.prepend(img);
+            zone.querySelector('svg').style.display = 'none';
+            zone.querySelector('.upload-text').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // ADD PRODUCT
+    function addProduct() {
+        const name = document.getElementById('productName').value.trim();
+        const desc = document.getElementById('productDesc').value.trim();
+        const price = document.getElementById('productPrice').value.trim();
+
+        if (!name) {
+            document.getElementById('productName').style.borderColor = '#ef4444';
+            document.getElementById('productName').focus();
+            setTimeout(() => document.getElementById('productName').style.borderColor = '', 2000);
+            showToast('Please enter a product name', 'error');
+            return;
+        }
+
+        if (!price || isNaN(price) || Number(price) <= 0) {
+            document.getElementById('productPrice').style.borderColor = '#ef4444';
+            document.getElementById('productPrice').focus();
+            setTimeout(() => document.getElementById('productPrice').style.borderColor = '', 2000);
+            showToast('Please enter a valid price', 'error');
+            return;
+        }
+
+        const product = {
+            id: Date.now(),
+            name,
+            desc,
+            price: Number(price),
+            image: uploadedImage,
+            status: 'live'
+        };
+
+        products.unshift(product);
+        closeAddForm();
+        renderProducts();
+        showToast(`"${name}" added to your store`);
+    }
+
+    // RENDER PRODUCTS
+    function renderProducts() {
+        const grid = document.getElementById('productsGrid');
+        const countLabel = document.getElementById('product-count-label');
+        const statVal = document.getElementById('stat-products');
+        const navCount = document.getElementById('nav-count');
+        const sortBtn = document.getElementById('sortBtn');
+
+        statVal.textContent = products.length;
+        navCount.textContent = products.length;
+
+        if (products.length === 0) {
+            countLabel.textContent = 'No products yet';
+            sortBtn.style.display = 'none';
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 01-8 0"/>
+                        </svg>
+                    </div>
+                    <div class="empty-title">No products yet</div>
+                    <div class="empty-sub">Add your first product and your store will be ready to share with customers.</div>
+                    <button class="btn btn-primary" onclick="openAddForm()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Add your first product
+                    </button>
+                </div>`;
+            return;
+        }
+
+        countLabel.textContent = `${products.length} product${products.length > 1 ? 's' : ''} in your store`;
+        sortBtn.style.display = 'flex';
+
+        grid.innerHTML = products.map(p => `
+            <div class="product-card" id="card-${p.id}">
+                <div class="product-thumb">
+                    ${p.image
+                        ? `<img src="${p.image}" alt="${p.name}">`
+                        : `<div class="product-thumb-placeholder">
+                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                           </div>`
+                    }
+                    <div class="product-actions-overlay">
+                        <button class="overlay-btn" title="Edit" onclick="showToast('Edit coming soon', 'info')">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </button>
+                        <button class="overlay-btn" title="Toggle visibility" onclick="toggleStatus(${p.id})">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                        <button class="overlay-btn delete" title="Delete" onclick="openDeleteModal(${p.id})">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                                <path d="M10 11v6"/><path d="M14 11v6"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="product-info">
+                    <div class="product-name">${p.name}</div>
+                    <div class="product-desc-preview">${p.desc || 'No description'}</div>
+                    <div class="product-footer">
+                        <div class="product-price">₦${p.price.toLocaleString()}</div>
+                        <div class="product-status ${p.status === 'live' ? 'status-live' : 'status-hidden'}">
+                            ${p.status === 'live' ? 'Live' : 'Hidden'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // TOGGLE STATUS
+    function toggleStatus(id) {
+        const p = products.find(p => p.id === id);
+        if (!p) return;
+        p.status = p.status === 'live' ? 'hidden' : 'live';
+        renderProducts();
+        showToast(`"${p.name}" is now ${p.status}`);
+    }
+
+    // DELETE
+    function openDeleteModal(id) {
+        deleteTarget = id;
+        document.getElementById('deleteModal').classList.add('open');
+    }
+
+    function closeDeleteModal() {
+        deleteTarget = null;
+        document.getElementById('deleteModal').classList.remove('open');
+    }
+
+    function confirmDelete() {
+        if (deleteTarget === null) return;
+        const p = products.find(p => p.id === deleteTarget);
+        products = products.filter(p => p.id !== deleteTarget);
+        closeDeleteModal();
+        renderProducts();
+        showToast(`"${p.name}" removed from your store`);
+    }
+
+    // COPY LINK
+    function copyLink() {
+        navigator.clipboard.writeText('https://vendly.com/amaka').then(() => {
+            showToast('Store link copied to clipboard');
+        }).catch(() => {
+            showToast('Could not copy link', 'error');
+        });
+    }
+
+    function viewStorefront() {
+        showToast('Storefront page coming next');
+    }
+
+    // TOAST
+    let toastTimeout;
+    function showToast(msg, type = 'success') {
+        const toast = document.getElementById('toast');
+        const msgEl = document.getElementById('toast-msg');
+        const icon = toast.querySelector('svg');
+
+        msgEl.textContent = msg;
+        toast.className = `toast ${type}`;
+
+        if (type === 'error') {
+            icon.innerHTML = `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`;
+        } else {
+            icon.innerHTML = `<polyline points="20 6 9 17 4 12"/>`;
+        }
+
+        clearTimeout(toastTimeout);
+        setTimeout(() => toast.classList.add('show'), 10);
+        toastTimeout = setTimeout(() => toast.classList.remove('show'), 3200);
+    }
+
+    // CLOSE MODAL ON OUTSIDE CLICK
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) closeDeleteModal();
+    });
+
+    // INIT
+    renderProducts();
+</script>
+
+</body>
+</html>
