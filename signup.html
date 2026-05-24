@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendly — Create your store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --green: #16a34a;
+            --green-light: #dcfce7;
+            --green-dark: #15803d;
+            --green-pale: #f0fdf4;
+            --black: #0f1a0f;
+            --grey-dark: #374151;
+            --grey-mid: #6b7280;
+            --grey-light: #e5e7eb;
+            --grey-pale: #f9fafb;
+            --white: #ffffff;
+            --red: #ef4444;
+            --red-pale: #fef2f2;
+            --font-display: 'Instrument Serif', Georgia, serif;
+            --font-body: 'Outfit', sans-serif;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--white);
+            color: var(--black);
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        /* LEFT PANEL */
+        .left-panel {
+            background: var(--black);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            top: -180px; left: -180px;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(22,163,74,0.18) 0%, transparent 65%);
+            pointer-events: none;
+        }
+
+        .left-panel::after {
+            content: '';
+            position: absolute;
+            bottom: -160px; right: -160px;
+            width: 440px; height: 440px;
+            background: radial-gradient(circle, rgba(22,163,74,0.12) 0%, transparent 65%);
+            pointer-events: none;
+        }
+
+        .panel-logo {
+            font-family: var(--font-display);
+            font-size: 1.7rem;
+            color: var(--white);
+            letter-spacing: -0.02em;
+            text-decoration: none;
+            display: block;
+            margin-bottom: auto;
+        }
+
+        .panel-logo span { color: #86efac; }
+
+        .panel-body {
+            padding: 48px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .panel-heading {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 3vw, 2.9rem);
+            line-height: 1.1;
+            letter-spacing: -0.025em;
+            color: var(--white);
+            margin-bottom: 20px;
+        }
+
+        .panel-heading em {
+            font-style: italic;
+            color: #86efac;
+        }
+
+        .panel-sub {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.45);
+            line-height: 1.75;
+            font-weight: 300;
+            margin-bottom: 44px;
+            max-width: 340px;
+        }
+
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        .feature-item:nth-child(1) { animation-delay: 0.1s; }
+        .feature-item:nth-child(2) { animation-delay: 0.2s; }
+        .feature-item:nth-child(3) { animation-delay: 0.3s; }
+        .feature-item:nth-child(4) { animation-delay: 0.4s; }
+
+        .feature-dot {
+            width: 32px; height: 32px;
+            border-radius: 9px;
+            background: rgba(22,163,74,0.18);
+            border: 1px solid rgba(22,163,74,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .feature-text-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 3px;
+        }
+
+        .feature-text-sub {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.38);
+            line-height: 1.55;
+            font-weight: 300;
+        }
+
+        .panel-footer {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* RIGHT PANEL */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px 64px;
+            min-height: 100vh;
+            background: var(--white);
+        }
+
+        .form-header {
+            margin-bottom: 36px;
+            animation: fadeUp 0.55s ease 0.05s both;
+        }
+
+        .form-header-step {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--green);
+            margin-bottom: 12px;
+        }
+
+        .step-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .step-dot {
+            width: 18px; height: 4px;
+            border-radius: 2px;
+            background: var(--grey-light);
+        }
+
+        .step-dot.active { background: var(--green); }
+
+        .form-title {
+            font-family: var(--font-display);
+            font-size: 1.85rem;
+            letter-spacing: -0.02em;
+            color: var(--black);
+            margin-bottom: 6px;
+        }
+
+        .form-subtitle {
+            font-size: 0.875rem;
+            color: var(--grey-mid);
+            font-weight: 300;
+        }
+
+        /* FORM */
+        .signup-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+            animation: fadeUp 0.55s ease both;
+        }
+
+        .field-group:nth-child(1) { animation-delay: 0.1s; }
+        .field-group:nth-child(2) { animation-delay: 0.15s; }
+        .field-group:nth-child(3) { animation-delay: 0.2s; }
+        .field-group:nth-child(4) { animation-delay: 0.25s; }
+        .field-group:nth-child(5) { animation-delay: 0.3s; }
+        .field-group:nth-child(6) { animation-delay: 0.35s; }
+
+        .field-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--grey-dark);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .field-required {
+            color: var(--green);
+            font-size: 0.7rem;
+        }
+
+        .field-wrap {
+            position: relative;
+        }
+
+        .field-icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--grey-mid);
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+            transition: color 0.2s;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 11px 14px 11px 40px;
+            border: 1.5px solid var(--grey-light);
+            border-radius: 9px;
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            color: var(--black);
+            background: var(--white);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .field-input:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(22,163,74,0.09);
+        }
+
+        .field-input:focus + .field-icon,
+        .field-wrap:focus-within .field-icon {
+            color: var(--green);
+        }
+
+        .field-input::placeholder { color: #c4c9d4; }
+
+        .field-input.error {
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.09);
+        }
+
+        .field-error {
+            font-size: 0.72rem;
+            color: var(--red);
+            display: none;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .field-error.show { display: flex; }
+
+        .field-hint {
+            font-size: 0.72rem;
+            color: var(--grey-mid);
+            line-height: 1.45;
+        }
+
+        /* SLUG FIELD */
+        .slug-wrap {
+            display: flex;
+            border: 1.5px solid var(--grey-light);
+            border-radius: 9px;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .slug-wrap:focus-within {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(22,163,74,0.09);
+        }
+
+        .slug-wrap.error { border-color: var(--red); box-shadow: 0 0 0 3px rgba(239,68,68,0.09); }
+
+        .slug-prefix {
+            padding: 11px 12px;
+            background: var(--grey-pale);
+            border-right: 1.5px solid var(--grey-light);
+            font-size: 0.8rem;
+            color: var(--grey-mid);
+            font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+        }
+
+        .slug-input {
+            flex: 1;
+            padding: 11px 14px;
+            border: none;
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            color: var(--black);
+            outline: none;
+            background: var(--white);
+        }
+
+        .slug-input::placeholder { color: #c4c9d4; }
+
+        .slug-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+
+        .slug-status.available { color: var(--green); }
+        .slug-status.taken { color: var(--red); }
+        .slug-status.checking { color: var(--grey-mid); }
+
+        /* PHONE FIELD */
+        .phone-wrap {
+            display: flex;
+            border: 1.5px solid var(--grey-light);
+            border-radius: 9px;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .phone-wrap:focus-within {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(22,163,74,0.09);
+        }
+
+        .phone-flag {
+            padding: 11px 13px;
+            background: var(--grey-pale);
+            border-right: 1.5px solid var(--grey-light);
+            font-size: 0.8rem;
+            color: var(--grey-dark);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .phone-input {
+            flex: 1;
+            padding: 11px 14px;
+            border: none;
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            color: var(--black);
+            outline: none;
+            background: var(--white);
+        }
+
+        .phone-input::placeholder { color: #c4c9d4; }
+
+        /* PASSWORD */
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--grey-mid);
+            display: flex;
+            align-items: center;
+            padding: 4px;
+            border-radius: 5px;
+            transition: color 0.18s;
+        }
+
+        .password-toggle:hover { color: var(--black); }
+
+        .field-input.has-toggle { padding-right: 42px; }
+
+        /* PASSWORD STRENGTH */
+        .strength-bar {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .strength-segment {
+            height: 3px;
+            flex: 1;
+            border-radius: 2px;
+            background: var(--grey-light);
+            transition: background 0.3s;
+        }
+
+        .strength-label {
+            font-size: 0.7rem;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* TERMS */
+        .terms-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 11px;
+            margin-bottom: 22px;
+            animation: fadeUp 0.55s ease 0.4s both;
+        }
+
+        .custom-checkbox {
+            width: 18px; height: 18px;
+            border: 1.5px solid var(--grey-light);
+            border-radius: 5px;
+            flex-shrink: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1px;
+            transition: all 0.18s;
+            background: var(--white);
+        }
+
+        .custom-checkbox.checked {
+            background: var(--green);
+            border-color: var(--green);
+        }
+
+        .terms-text {
+            font-size: 0.78rem;
+            color: var(--grey-mid);
+            line-height: 1.6;
+        }
+
+        .terms-text a {
+            color: var(--green-dark);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        /* SUBMIT */
+        .submit-btn {
+            width: 100%;
+            padding: 13px;
+            background: var(--green);
+            color: var(--white);
+            border: none;
+            border-radius: 9px;
+            font-family: var(--font-body);
+            font-size: 0.925rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            transition: all 0.22s;
+            margin-bottom: 20px;
+            animation: fadeUp 0.55s ease 0.45s both;
+        }
+
+        .submit-btn:hover {
+            background: var(--green-dark);
+            box-shadow: 0 6px 20px rgba(22,163,74,0.28);
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:active { transform: translateY(0); }
+
+        .submit-btn:disabled {
+            background: var(--grey-light);
+            color: var(--grey-mid);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .submit-btn .spinner {
+            width: 17px; height: 17px;
+            border: 2.5px solid rgba(255,255,255,0.35);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        .submit-btn.loading .spinner { display: block; }
+        .submit-btn.loading .btn-text { display: none; }
+        .submit-btn.loading .btn-icon { display: none; }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .login-link {
+            text-align: center;
+            font-size: 0.82rem;
+            color: var(--grey-mid);
+            animation: fadeUp 0.55s ease 0.5s both;
+        }
+
+        .login-link a {
+            color: var(--green-dark);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .login-link a:hover { text-decoration: underline; }
+
+        /* SUCCESS STATE */
+        .success-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .success-screen.show { display: flex; }
+
+        .success-icon-wrap {
+            width: 72px; height: 72px;
+            background: var(--green-pale);
+            border: 2px solid var(--green-light);
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .success-title {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            color: var(--black);
+            margin-bottom: 10px;
+        }
+
+        .success-sub {
+            font-size: 0.875rem;
+            color: var(--grey-mid);
+            line-height: 1.7;
+            margin-bottom: 28px;
+            max-width: 320px;
+        }
+
+        .success-link-box {
+            background: var(--grey-pale);
+            border: 1.5px solid var(--grey-light);
+            border-radius: 10px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            width: 100%;
+            margin-bottom: 22px;
+        }
+
+        .success-link-text {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .success-link-text span { color: var(--green); }
+
+        .copy-btn {
+            background: var(--green);
+            color: white;
+            border: none;
+            border-radius: 7px;
+            padding: 8px 14px;
+            font-family: var(--font-body);
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.18s;
+            white-space: nowrap;
+        }
+
+        .copy-btn:hover { background: var(--green-dark); }
+
+        .goto-dashboard {
+            width: 100%;
+            padding: 13px;
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            border-radius: 9px;
+            font-family: var(--font-body);
+            font-size: 0.925rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            transition: all 0.22s;
+        }
+
+        .goto-dashboard:hover { background: var(--grey-dark); }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 24px; right: 24px;
+            background: var(--black);
+            color: var(--white);
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 0.835rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            box-shadow: 0 10px 32px rgba(0,0,0,0.2);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 999;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success svg { color: #86efac; }
+        .toast.error svg { color: #fca5a5; }
+
+        /* ANIMATIONS */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 860px) {
+            body { grid-template-columns: 1fr; }
+
+            .left-panel {
+                min-height: auto;
+                padding: 32px 28px;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .panel-body, .panel-footer, .panel-heading,
+            .panel-sub, .feature-list { display: none; }
+
+            .panel-logo { margin-bottom: 0; }
+
+            .right-panel {
+                padding: 36px 28px 48px;
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- LEFT PANEL -->
+<div class="left-panel">
+    <a href="index.html" class="panel-logo">Vend<span>ly</span></a>
+
+    <div class="panel-body">
+        <h2 class="panel-heading">Your store.<br><em>Ready in</em><br>two minutes.</h2>
+        <p class="panel-sub">Join sellers already using Vendly to share their products and get clean WhatsApp orders from customers.</p>
+
+        <div class="feature-list">
+            <div class="feature-item">
+                <div class="feature-dot">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+                        <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="feature-text-title">One link for everything</div>
+                    <div class="feature-text-sub">Share vendly.com/yourstore anywhere and customers can browse and order instantly.</div>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-dot">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="feature-text-title">Orders straight to WhatsApp</div>
+                    <div class="feature-text-sub">Customers tap Order and you get a full itemised message on WhatsApp. No confusion.</div>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-dot">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="5" width="20" height="14" rx="2"/>
+                        <line x1="2" y1="10" x2="22" y2="10"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="feature-text-title">You control payment</div>
+                    <div class="feature-text-sub">Bank transfer, cash, POS — collect money however works for you. No middleman.</div>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-dot">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="feature-text-title">Free to start</div>
+                    <div class="feature-text-sub">No card needed. Get your store live today at zero cost.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-footer">© 2026 Vendly</div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right-panel">
+
+    <!-- FORM VIEW -->
+    <div id="formView">
+        <div class="form-header">
+            <div class="form-header-step">
+                <div class="step-dots">
+                    <div class="step-dot active"></div>
+                    <div class="step-dot active"></div>
+                    <div class="step-dot"></div>
+                </div>
+                Step 1 of 3 — Account setup
+            </div>
+            <div class="form-title">Create your store</div>
+            <div class="form-subtitle">Fill in your details and your store goes live immediately.</div>
+        </div>
+
+        <form class="signup-form" onsubmit="handleSubmit(event)" novalidate>
+
+            <!-- NAME ROW -->
+            <div class="form-row">
+                <div class="field-group">
+                    <label class="field-label">First name <span class="field-required">*</span></label>
+                    <div class="field-wrap">
+                        <input type="text" class="field-input" id="firstName" placeholder="Ada" autocomplete="given-name">
+                        <div class="field-icon">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="field-error" id="err-firstName">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Enter your first name
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Last name <span class="field-required">*</span></label>
+                    <div class="field-wrap">
+                        <input type="text" class="field-input" id="lastName" placeholder="Okonkwo" autocomplete="family-name">
+                        <div class="field-icon">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="field-error" id="err-lastName">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Enter your last name
+                    </div>
+                </div>
+            </div>
+
+            <!-- STORE NAME -->
+            <div class="field-group">
+                <label class="field-label">Store name <span class="field-required">*</span></label>
+                <div class="field-wrap">
+                    <input type="text" class="field-input" id="storeName" placeholder="e.g. Amaka's Boutique" oninput="generateSlug(this.value)">
+                    <div class="field-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="field-error" id="err-storeName">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Enter a store name
+                </div>
+            </div>
+
+            <!-- STORE SLUG -->
+            <div class="field-group">
+                <label class="field-label">Store link <span class="field-required">*</span></label>
+                <div class="slug-wrap" id="slugWrap">
+                    <div class="slug-prefix">vendly.com/</div>
+                    <input type="text" class="slug-input" id="storeSlug" placeholder="amaka" oninput="checkSlug(this.value)">
+                </div>
+                <div class="slug-status checking" id="slugStatus" style="display:none">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/></svg>
+                    Checking...
+                </div>
+                <div class="field-error" id="err-storeSlug">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Enter a store link
+                </div>
+                <div class="field-hint">Only letters, numbers and hyphens. This is your permanent store URL.</div>
+            </div>
+
+            <!-- EMAIL -->
+            <div class="field-group">
+                <label class="field-label">Email address <span class="field-required">*</span></label>
+                <div class="field-wrap">
+                    <input type="email" class="field-input" id="email" placeholder="ada@example.com" autocomplete="email">
+                    <div class="field-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="field-error" id="err-email">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Enter a valid email address
+                </div>
+            </div>
+
+            <!-- WHATSAPP -->
+            <div class="field-group">
+                <label class="field-label">WhatsApp number <span class="field-required">*</span></label>
+                <div class="phone-wrap" id="phoneWrap">
+                    <div class="phone-flag">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.67 19.79 19.79 0 01.14 2.06 2 2 0 012.11 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.09a16 16 0 006 6l.45-.45a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+                        </svg>
+                        +234
+                    </div>
+                    <input type="tel" class="phone-input" id="whatsapp" placeholder="0812 345 6789" maxlength="11">
+                </div>
+                <div class="field-error" id="err-whatsapp">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Enter a valid Nigerian phone number
+                </div>
+                <div class="field-hint">Orders from customers will be sent to this number.</div>
+            </div>
+
+            <!-- PASSWORD -->
+            <div class="field-group">
+                <label class="field-label">Password <span class="field-required">*</span></label>
+                <div class="field-wrap">
+                    <input type="password" class="field-input has-toggle" id="password" placeholder="Min. 8 characters" oninput="checkStrength(this.value)" autocomplete="new-password">
+                    <div class="field-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                        </svg>
+                    </div>
+                    <button type="button" class="password-toggle" id="togglePass" onclick="togglePassword('password', 'togglePass')">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="eyeIcon">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="strength-bar" id="strengthBar">
+                    <div class="strength-segment" id="s1"></div>
+                    <div class="strength-segment" id="s2"></div>
+                    <div class="strength-segment" id="s3"></div>
+                    <div class="strength-segment" id="s4"></div>
+                </div>
+                <div class="strength-label" id="strengthLabel" style="color:var(--grey-mid)"></div>
+                <div class="field-error" id="err-password">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Password must be at least 8 characters
+                </div>
+            </div>
+
+            <!-- TERMS -->
+            <div class="terms-row">
+                <div class="custom-checkbox" id="termsBox" onclick="toggleTerms()"></div>
+                <div class="terms-text">
+                    I agree to Vendly's <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. I understand my store link is permanent once created.
+                </div>
+            </div>
+
+            <!-- SUBMIT -->
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <span class="btn-text">Create my store</span>
+                <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                </svg>
+                <div class="spinner"></div>
+            </button>
+
+            <div class="login-link">
+                Already have a store? <a href="login.html">Sign in</a>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- SUCCESS VIEW -->
+    <div class="success-screen" id="successScreen">
+        <div class="success-icon-wrap">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+        </div>
+        <div class="success-title">Your store is live.</div>
+        <div class="success-sub">Share your link and start receiving orders on WhatsApp. You can add products from your dashboard.</div>
+        <div class="success-link-box">
+            <div class="success-link-text">vendly.com/<span id="successSlug">yourstore</span></div>
+            <button class="copy-btn" onclick="copyStoreLink()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                </svg>
+                Copy link
+            </button>
+        </div>
+        <button class="goto-dashboard" onclick="showToast('Dashboard coming next', 'success')">
+            Go to dashboard
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+            </svg>
+        </button>
+    </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" id="toastIcon">
+        <polyline points="20 6 9 17 4 12"/>
+    </svg>
+    <span id="toastMsg">Done</span>
+</div>
+
+<script>
+    let termsChecked = false;
+    let slugValid = false;
+    let slugTimeout;
+
+    // SLUG GENERATOR
+    function generateSlug(storeName) {
+        const slug = storeName
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .slice(0, 30);
+
+        document.getElementById('storeSlug').value = slug;
+        if (slug) checkSlug(slug);
+    }
+
+    // SLUG CHECKER
+    const takenSlugs = ['amaka', 'shop', 'store', 'vendly', 'admin', 'test'];
+
+    function checkSlug(value) {
+        const status = document.getElementById('slugStatus');
+        const wrap = document.getElementById('slugWrap');
+        const clean = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+
+        document.getElementById('storeSlug').value = clean;
+
+        if (!clean) {
+            status.style.display = 'none';
+            slugValid = false;
+            return;
+        }
+
+        status.style.display = 'flex';
+        status.className = 'slug-status checking';
+        status.innerHTML = `
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="10"/>
+            </svg> Checking availability...`;
+
+        clearTimeout(slugTimeout);
+        slugTimeout = setTimeout(() => {
+            const taken = takenSlugs.includes(clean);
+            slugValid = !taken;
+
+            if (taken) {
+                status.className = 'slug-status taken';
+                status.innerHTML = `
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg> vendly.com/${clean} is already taken`;
+            } else {
+                status.className = 'slug-status available';
+                status.innerHTML = `
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg> vendly.com/${clean} is available`;
+            }
+        }, 700);
+    }
+
+    // PASSWORD STRENGTH
+    function checkStrength(val) {
+        const segments = [
+            document.getElementById('s1'),
+            document.getElementById('s2'),
+            document.getElementById('s3'),
+            document.getElementById('s4')
+        ];
+        const label = document.getElementById('strengthLabel');
+
+        segments.forEach(s => s.style.background = 'var(--grey-light)');
+
+        if (!val) { label.textContent = ''; return; }
+
+        let score = 0;
+        if (val.length >= 8) score++;
+        if (/[A-Z]/.test(val)) score++;
+        if (/[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+
+        const colors = ['#ef4444', '#f97316', '#eab308', '#16a34a'];
+        const labels = ['Too weak', 'Weak', 'Good', 'Strong'];
+
+        for (let i = 0; i < score; i++) {
+            segments[i].style.background = colors[score - 1];
+        }
+
+        label.textContent = labels[score - 1] || '';
+        label.style.color = colors[score - 1] || 'var(--grey-mid)';
+    }
+
+    // TOGGLE PASSWORD VISIBILITY
+    function togglePassword(inputId, btnId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById('eyeIcon');
+        const isHidden = input.type === 'password';
+        input.type = isHidden ? 'text' : 'password';
+        icon.innerHTML = isHidden
+            ? `<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+               <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+               <line x1="1" y1="1" x2="23" y2="23"/>`
+            : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+    }
+
+    // TERMS TOGGLE
+    function toggleTerms() {
+        termsChecked = !termsChecked;
+        const box = document.getElementById('termsBox');
+        box.classList.toggle('checked', termsChecked);
+        box.innerHTML = termsChecked
+            ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`
+            : '';
+    }
+
+    // VALIDATE FIELD
+    function validate(id, condition, errId) {
+        const el = document.getElementById(id);
+        const err = document.getElementById(errId);
+        if (!condition) {
+            el.classList.add('error');
+            err.classList.add('show');
+            return false;
+        }
+        el.classList.remove('error');
+        err.classList.remove('show');
+        return true;
+    }
+
+    // FORM SUBMIT
+    function handleSubmit(e) {
+        e.preventDefault();
+
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const storeName = document.getElementById('storeName').value.trim();
+        const slug = document.getElementById('storeSlug').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('whatsapp').value.trim();
+        const password = document.getElementById('password').value;
+
+        let valid = true;
+
+        valid = validate('firstName', firstName.length >= 2, 'err-firstName') && valid;
+        valid = validate('lastName', lastName.length >= 2, 'err-lastName') && valid;
+        valid = validate('storeName', storeName.length >= 2, 'err-storeName') && valid;
+        valid = validate('storeSlug', slug.length >= 2 && slugValid, 'err-storeSlug') && valid;
+        valid = validate('email', /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), 'err-email') && valid;
+        valid = validate('whatsapp', /^0[789][01]\d{8}$/.test(phone.replace(/\s/g, '')), 'err-whatsapp') && valid;
+        valid = validate('password', password.length >= 8, 'err-password') && valid;
+
+        if (!valid) {
+            showToast('Please fix the errors above', 'error');
+            const firstError = document.querySelector('.field-input.error');
+            if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
+        if (!termsChecked) {
+            showToast('Please agree to the terms to continue', 'error');
+            return;
+        }
+
+        if (!slugValid) {
+            showToast('Please choose an available store link', 'error');
+            return;
+        }
+
+        // LOADING STATE
+        const btn = document.getElementById('submitBtn');
+        btn.classList.add('loading');
+        btn.disabled = true;
+
+        // SIMULATE API CALL
+        setTimeout(() => {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+
+            document.getElementById('successSlug').textContent = slug;
+            document.getElementById('formView').style.display = 'none';
+            document.getElementById('successScreen').classList.add('show');
+        }, 1800);
+    }
+
+    // COPY STORE LINK
+    function copyStoreLink() {
+        const slug = document.getElementById('successSlug').textContent;
+        navigator.clipboard.writeText(`https://vendly.com/${slug}`).then(() => {
+            showToast('Store link copied');
+        });
+    }
+
+    // TOAST
+    let toastTimer;
+    function showToast(msg, type = 'success') {
+        const toast = document.getElementById('toast');
+        const icon = document.getElementById('toastIcon');
+        document.getElementById('toastMsg').textContent = msg;
+        toast.className = `toast ${type}`;
+
+        icon.innerHTML = type === 'error'
+            ? `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`
+            : `<polyline points="20 6 9 17 4 12"/>`;
+
+        clearTimeout(toastTimer);
+        requestAnimationFrame(() => toast.classList.add('show'));
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // CLEAR ERRORS ON INPUT
+    document.querySelectorAll('.field-input, .slug-input, .phone-input').forEach(input => {
+        input.addEventListener('input', () => {
+            input.classList.remove('error');
+            const errId = 'err-' + input.id;
+            const err = document.getElementById(errId);
+            if (err) err.classList.remove('show');
+        });
+    });
+</script>
+
+</body>
+</html>
