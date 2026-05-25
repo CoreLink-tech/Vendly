@@ -188,7 +188,30 @@
 <div class="toast-container" id="toast-container"></div>
 
 <script>
-  const STORE = { name: "Amaka's Boutique", slug: "amaka", phone: "2348012345678" };
+  const DEFAULT_STORE = { name: "Amaka's Boutique", slug: "amaka", phone: "2348012345678" };
+
+  const STORE = getStoredVendor() || DEFAULT_STORE;
+
+  function normalizeWhatsAppNumber(input) {
+    const digits = input.replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.startsWith('0')) return `234${digits.slice(1)}`;
+    if (digits.startsWith('234')) return digits;
+    return digits;
+  }
+
+  function getStoredVendor() {
+    if (!window.VendlyAuth || typeof window.VendlyAuth.getUser !== 'function') return null;
+    const user = window.VendlyAuth.getUser();
+    if (!user || !user.storeName || !user.slug || !user.phone) return null;
+    const phone = normalizeWhatsAppNumber(user.phone);
+    if (!phone) return null;
+    return {
+      name: user.storeName,
+      slug: user.slug,
+      phone,
+    };
+  }
 
   const PRODUCTS = [
     { id: 1, name: "Ankara Dress",    price: 6500, icon: "dress"   },
@@ -278,10 +301,17 @@
   }
 
   function buildWALink() {
+    const phone = STORE.phone || DEFAULT_STORE.phone;
     const lines = [`New order — ${STORE.name}`, `vendly.com/${STORE.slug}`, ''];
     PRODUCTS.forEach(p => { if (cart[p.id]) lines.push(`${p.name} × ${cart[p.id]} — ${fmt(p.price * cart[p.id])}`); });
     lines.push('', `Total: ${fmt(cartTotal())}`);
-    return `https://wa.me/${STORE.phone}?text=${encodeURIComponent(lines.join('\n'))}`;
+    return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join('\n'))}`;
+  }
+
+  function renderStore() {
+    document.title = `${STORE.name} — Shop on Vendly`;
+    const storeNameEls = document.querySelectorAll('.store-name');
+    storeNameEls.forEach(el => el.textContent = STORE.name);
   }
 
   function showToast(msg) {
@@ -299,6 +329,7 @@
 
   renderGrid();
   updateBar();
+  renderStore();
 </script>
 </body>
 </html>
