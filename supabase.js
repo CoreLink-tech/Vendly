@@ -5,6 +5,7 @@
 
   // Load UMD build of supabase-js then initialize client
   const s = document.createElement('script');
+  s.async = false;
   s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js';
   s.onload = () => {
     try {

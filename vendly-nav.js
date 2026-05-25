@@ -26,6 +26,26 @@ const Auth = {
     return !!localStorage.getItem('vendly_user');
   },
 
+  // Restore a Supabase session if available
+  async restoreSession() {
+    if (!window.supabase) return false;
+    try {
+      const { data, error } = await window.supabase.auth.getSession();
+      if (error) {
+        console.warn('Supabase session restore failed', error.message);
+        return false;
+      }
+      const user = data?.session?.user;
+      if (user) {
+        Auth.setUser(user);
+        return true;
+      }
+    } catch (err) {
+      console.warn('Supabase session restore error', err);
+    }
+    return false;
+  },
+
   // Call this on successful login / signup
   // Pass the user object from Supabase: Auth.setUser(session.user)
   setUser(user) {
@@ -33,7 +53,14 @@ const Auth = {
   },
 
   // Call this on logout
-  clearUser() {
+  async clearUser() {
+    if (window.supabase) {
+      try {
+        await window.supabase.auth.signOut();
+      } catch (_err) {
+        // ignore sign-out failures
+      }
+    }
     localStorage.removeItem('vendly_user');
   },
 
@@ -113,7 +140,8 @@ function wireLogout() {
 }
 
 /* ── Run everything once DOM is ready ─────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await Auth.restoreSession();
   runGuards();
   wireNavAttributes();
   wireLogout();
