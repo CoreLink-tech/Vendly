@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vendly — Create your store</title>
+    <script src="supabase.js"></script>
     <script src="vendly-nav.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1184,24 +1185,30 @@
         btn.classList.add('loading');
         btn.disabled = true;
 
-        // SIMULATE API CALL
-        setTimeout(() => {
-            btn.classList.remove('loading');
-            btn.disabled = false;
+        try {
+            if (!window.supabase) throw new Error('Supabase not initialized');
 
-            VendlyAuth.setUser({
-                firstName,
-                lastName,
-                email,
-                storeName,
-                slug,
-                phone,
-            });
+            const { data, error } = await window.supabase.auth.signUp({ email, password }, { data: { firstName, lastName } });
+            if (error) throw error;
+            const user = (data && data.user) ? data.user : data;
 
+            // Try to create a store row; if the table doesn't exist this will fail quietly
+            try {
+                await window.supabase.from('stores').insert([{ owner_id: user.id, name: storeName, slug, whatsapp: phone }]);
+            } catch (ie) {
+                console.warn('Could not insert store row:', ie.message || ie);
+            }
+
+            VendlyAuth.setUser(user);
             document.getElementById('successSlug').textContent = slug;
             document.getElementById('formView').style.display = 'none';
             document.getElementById('successScreen').classList.add('show');
-        }, 1800);
+        } catch (err) {
+            showToast(err.message || 'Signup failed', 'error');
+        } finally {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+        }
     }
 
     // COPY STORE LINK

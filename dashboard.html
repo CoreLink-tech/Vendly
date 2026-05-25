@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vendly — Dashboard</title>
+    <script src="supabase.js"></script>
     <script src="vendly-nav.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1192,6 +1193,21 @@
     let deleteTarget = null;
     let uploadedImage = null;
 
+    async function loadProducts() {
+        try {
+            if (!window.supabase) { renderProducts(); return; }
+            const user = VendlyAuth.getUser();
+            if (!user || !user.id) { renderProducts(); return; }
+            const { data, error } = await window.supabase.from('products').select('*').eq('owner_id', user.id).order('id', { ascending: false });
+            if (error) { console.warn('Failed to load products', error.message); renderProducts(); return; }
+            products = data || [];
+            renderProducts();
+        } catch (err) {
+            console.error('loadProducts error', err);
+            renderProducts();
+        }
+    }
+
     // SIDEBAR TOGGLE
     function toggleSidebar() {
         document.getElementById('sidebar').classList.toggle('open');
@@ -1246,7 +1262,7 @@
     }
 
     // ADD PRODUCT
-    function addProduct() {
+    async function addProduct() {
         const name = document.getElementById('productName').value.trim();
         const desc = document.getElementById('productDesc').value.trim();
         const price = document.getElementById('productPrice').value.trim();
@@ -1265,6 +1281,22 @@
             setTimeout(() => document.getElementById('productPrice').style.borderColor = '', 2000);
             showToast('Please enter a valid price', 'error');
             return;
+        }
+
+        // Try to persist via Supabase; fall back to local if unavailable
+        try {
+            if (window.supabase && VendlyAuth.getUser() && VendlyAuth.getUser().id) {
+                const owner_id = VendlyAuth.getUser().id;
+                const { data, error } = await window.supabase.from('products').insert([{ name, desc, price: Number(price), image: uploadedImage, status: 'live', owner_id }]);
+                if (error) throw error;
+                await loadProducts();
+                closeAddForm();
+                showToast(`"${name}" added to your store`);
+                return;
+            }
+        } catch (err) {
+            console.warn('Supabase addProduct failed', err.message || err);
+            showToast('Could not save product to backend, saved locally', 'error');
         }
 
         const product = {
@@ -1392,10 +1424,24 @@
     function confirmDelete() {
         if (deleteTarget === null) return;
         const p = products.find(p => p.id === deleteTarget);
-        products = products.filter(p => p.id !== deleteTarget);
-        closeDeleteModal();
-        renderProducts();
-        showToast(`"${p.name}" removed from your store`);
+        // Try delete from Supabase first
+        (async () => {
+            try {
+                if (window.supabase && VendlyAuth.getUser() && VendlyAuth.getUser().id) {
+                    await window.supabase.from('products').delete().eq('id', deleteTarget);
+                    await loadProducts();
+                } else {
+                    products = products.filter(p => p.id !== deleteTarget);
+                    renderProducts();
+                }
+                showToast(`"${p ? p.name : 'Item'}" removed from your store`);
+            } catch (err) {
+                console.warn('Delete failed', err);
+                showToast('Could not remove item from backend', 'error');
+            } finally {
+                closeDeleteModal();
+            }
+        })();
     }
 
     // COPY LINK
@@ -1438,7 +1484,7 @@
     });
 
     // INIT
-    renderProducts();
+    loadProducts();
 </script>
 
 </body>

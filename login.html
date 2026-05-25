@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vendly — Log In</title>
+  <script src="supabase.js"></script>
   <script src="vendly-nav.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -775,25 +776,31 @@
     toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
   }
 
-  // CHANGE 5: on success, navigate to dashboard using VendlyNav
-  function handleLogin() {
+  // Supabase-backed login
+  async function handleLogin() {
     if (!validate()) return;
 
     const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
 
     loginBtn.classList.add('loading');
     loginBtn.disabled = true;
 
-    setTimeout(() => {
+    try {
+      if (!window.supabase) throw new Error('Supabase not initialized');
+      const { data, error } = await window.supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      const user = (data && data.user) ? data.user : data;
+      if (!user) throw new Error('No user returned');
+      VendlyAuth.setUser(user);
+      showToast('Login successful — redirecting…');
+      setTimeout(() => VendlyNav.go('dashboard'), 900);
+    } catch (err) {
+      showToast(err.message || 'Login failed', 'error');
+    } finally {
       loginBtn.classList.remove('loading');
       loginBtn.disabled = false;
-
-      VendlyAuth.setUser({ email });
-      showToast('Login successful — redirecting…');
-      setTimeout(() => {
-        VendlyNav.go('dashboard');
-      }, 1200);
-    }, 1600);
+    }
   }
 
   document.addEventListener('keydown', e => {
