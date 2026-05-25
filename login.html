@@ -787,16 +787,19 @@
     loginBtn.disabled = true;
 
     try {
-      if (!window.supabase) throw new Error('Supabase not initialized');
-      const { data, error } = await window.supabase.auth.signInWithPassword({ email, password });
+      const client = await window.waitForSupabaseClient();
+      const { data, error } = await client.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      const user = (data && data.user) ? data.user : data;
+      const user = data?.user || data;
       if (!user) throw new Error('No user returned');
-      VendlyAuth.setUser(user);
+      await VendlyAuth.setUser(user);
       showToast('Login successful — redirecting…');
       setTimeout(() => VendlyNav.go('dashboard'), 900);
     } catch (err) {
-      showToast(err.message || 'Login failed', 'error');
+      const message = (err.message || '').toLowerCase().includes('email not confirmed')
+        ? 'Check your email inbox and confirm your account before logging in.'
+        : (err.message || 'Login failed');
+      showToast(message, 'error');
     } finally {
       loginBtn.classList.remove('loading');
       loginBtn.disabled = false;

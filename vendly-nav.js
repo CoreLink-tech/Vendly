@@ -1,62 +1,164 @@
 /* ============================================================
    vendly-nav.js
-   Drop this file in your vendly/ folder and add this line
-   to the <head> of every HTML file:
-
-     <script src="vendly-nav.js"></script>
-
-   That's it. Navigation, auth guards, and active-link
-   highlighting all work automatically.
+   Navigation helpers plus shared auth/session utilities.
    ============================================================ */
 
-
-/* ── Page map ─────────────────────────────────────────────── */
 const PAGES = {
-  landing:    'index.html',
-  login:      'login.html',
-  signup:     'signup.html',
-  dashboard:  'dashboard.html',
+  landing: 'index.html',
+  login: 'login.html',
+  signup: 'signup.html',
+  dashboard: 'dashboard.html',
   storefront: 'storefront.html',
 };
 
-/* ── Auth state (swap this out for Supabase later) ────────── */
+function buildInitials(value) {
+  const text = (value || '').trim();
+  if (!text) return 'V';
+
+  const parts = text.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
+function safeParseStoredUser() {
+  try {
+    const raw = localStorage.getItem('vendly_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch (_err) {
+    localStorage.removeItem('vendly_user');
+    return null;
+  }
+}
+
 const Auth = {
-  // Returns true if a user session exists
   isLoggedIn() {
-    return !!localStorage.getItem('vendly_user');
+    return !!Auth.getUser()?.id;
   },
 
-  // Restore a Supabase session if available
+  async getClient() {
+    if (window.supabase) return window.supabase;
+    if (typeof window.waitForSupabaseClient === 'function') {
+      return window.waitForSupabaseClient();
+    }
+    return null;
+  },
+
+  async enrichUser(user) {
+    if (!user) return null;
+
+    const metadata = user.user_metadata || {};
+    const enriched = {
+      ...user,
+      firstName: user.firstName || metadata.firstName || metadata.first_name || '',
+      lastName: user.lastName || metadata.lastName || metadata.last_name || '',
+      storeName: user.storeName || metadata.storeName || '',
+      slug: user.slug || metadata.slug || '',
+      phone: user.phone || metadata.phone || metadata.whatsapp || '',
+      storeId: user.storeId || metadata.storeId || null,
+    };
+
+    const client = await Auth.getClient().catch(() => null);
+    if (client && enriched.id) {
+      try {
+        const [{ data: profile }, { data: store }] = await Promise.all([
+          client.from('profiles').select('first_name, last_name').eq('id', enriched.id).maybeSingle(),
+          client.from('stores').select('id, name, slug, whatsapp').eq('owner_id', enriched.id).maybeSingle()
+        ]);
+
+        if (profile) {
+          enriched.firstName = profile.first_name || enriched.firstName;
+          enriched.lastName = profile.last_name || enriched.lastName;
+        }
+
+        if (store) {
+          enriched.storeId = store.id;
+          enriched.storeName = store.name || enriched.storeName;
+          enriched.slug = store.slug || enriched.slug;
+          enriched.phone = store.whatsapp || enriched.phone;
+        }
+
+        const needsProfile = !profile && (enriched.firstName || enriched.lastName);
+        if (needsProfile) {
+          await client.from('profiles').upsert([{
+            id: enriched.id,
+            first_name: enriched.firstName || null,
+            last_name: enriched.lastName || null,
+          }], { onConflict: 'id' });
+        }
+
+        const needsStore = !store && enriched.storeName && enriched.slug;
+        if (needsStore) {
+          const { data: insertedStore } = await client.from('stores').upsert([{
+            owner_id: enriched.id,
+            name: enriched.storeName,
+            slug: enriched.slug,
+            whatsapp: enriched.phone || null,
+          }], { onConflict: 'slug' }).select('id, name, slug, whatsapp').maybeSingle();
+
+          if (insertedStore) {
+            enriched.storeId = insertedStore.id;
+            enriched.storeName = insertedStore.name || enriched.storeName;
+            enriched.slug = insertedStore.slug || enriched.slug;
+            enriched.phone = insertedStore.whatsapp || enriched.phone;
+          }
+        }
+      } catch (err) {
+        console.warn('Could not enrich user context', err.message || err);
+      }
+    }
+
+    const displayName = [enriched.firstName, enriched.lastName].filter(Boolean).join(' ').trim()
+      || enriched.storeName
+      || enriched.email
+      || 'Vendor';
+
+    enriched.displayName = displayName;
+    enriched.initials = buildInitials(displayName);
+    return enriched;
+  },
+
   async restoreSession() {
-    if (!window.supabase) return false;
+    const client = await Auth.getClient().catch(() => null);
+    if (!client) return false;
+
     try {
-      const { data, error } = await window.supabase.auth.getSession();
+      const { data, error } = await client.auth.getSession();
       if (error) {
         console.warn('Supabase session restore failed', error.message);
         return false;
       }
+
       const user = data?.session?.user;
-      if (user) {
-        Auth.setUser(user);
-        return true;
+      if (!user) {
+        localStorage.removeItem('vendly_user');
+        return false;
       }
+
+      await Auth.setUser(user);
+      return true;
     } catch (err) {
       console.warn('Supabase session restore error', err);
+      return false;
     }
-    return false;
   },
 
-  // Call this on successful login / signup
-  // Pass the user object from Supabase: Auth.setUser(session.user)
-  setUser(user) {
-    localStorage.setItem('vendly_user', JSON.stringify(user));
+  async setUser(user) {
+    const enriched = await Auth.enrichUser(user);
+    localStorage.setItem('vendly_user', JSON.stringify(enriched));
+    return enriched;
   },
 
-  // Call this on logout
+  async refreshUser() {
+    const current = Auth.getUser();
+    if (!current?.id) return null;
+    return Auth.setUser(current);
+  },
+
   async clearUser() {
-    if (window.supabase) {
+    const client = await Auth.getClient().catch(() => null);
+    if (client) {
       try {
-        await window.supabase.auth.signOut();
+        await client.auth.signOut();
       } catch (_err) {
         // ignore sign-out failures
       }
@@ -64,22 +166,21 @@ const Auth = {
     localStorage.removeItem('vendly_user');
   },
 
-  // Returns the stored user object (or null)
   getUser() {
-    const raw = localStorage.getItem('vendly_user');
-    return raw ? JSON.parse(raw) : null;
+    return safeParseStoredUser();
   },
 };
 
-/* ── Navigation helpers ────────────────────────────────────── */
 const Nav = {
   go(page) {
     const path = PAGES[page];
-    if (!path) { console.warn(`Vendly Nav: unknown page "${page}"`); return; }
+    if (!path) {
+      console.warn(`Vendly Nav: unknown page "${page}"`);
+      return;
+    }
     window.location.href = path;
   },
 
-  // Go back in browser history (or fall back to a named page)
   back(fallbackPage = 'landing') {
     if (document.referrer) {
       history.back();
@@ -88,19 +189,14 @@ const Nav = {
     }
   },
 
-  // Returns the current page key e.g. 'login'
   current() {
     const file = window.location.pathname.split('/').pop() || 'index.html';
-    return Object.keys(PAGES).find(k => PAGES[k] === file) || null;
+    return Object.keys(PAGES).find(key => PAGES[key] === file) || null;
   },
 };
 
-/* ── Auth guards ───────────────────────────────────────────── */
-// Pages only logged-IN users can see
 const PROTECTED = ['dashboard'];
-
-// Pages only logged-OUT users should see (redirect away if already in)
-const AUTH_ONLY  = ['login', 'signup'];
+const AUTH_ONLY = ['login', 'signup'];
 
 function runGuards() {
   const page = Nav.current();
@@ -113,12 +209,9 @@ function runGuards() {
 
   if (AUTH_ONLY.includes(page) && Auth.isLoggedIn()) {
     Nav.go('dashboard');
-    return;
   }
 }
 
-/* ── Wire up any element with data-nav="pageName" ─────────── */
-// Example: <button data-nav="dashboard">Go to Dashboard</button>
 function wireNavAttributes() {
   document.querySelectorAll('[data-nav]').forEach(el => {
     el.addEventListener('click', e => {
@@ -128,18 +221,15 @@ function wireNavAttributes() {
   });
 }
 
-/* ── Wire logout buttons ───────────────────────────────────── */
-// Example: <button data-logout>Log out</button>
 function wireLogout() {
   document.querySelectorAll('[data-logout]').forEach(el => {
-    el.addEventListener('click', () => {
-      Auth.clearUser();
+    el.addEventListener('click', async () => {
+      await Auth.clearUser();
       Nav.go('login');
     });
   });
 }
 
-/* ── Run everything once DOM is ready ─────────────────────── */
 document.addEventListener('DOMContentLoaded', async () => {
   await Auth.restoreSession();
   runGuards();
@@ -147,7 +237,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   wireLogout();
 });
 
-/* ── Export for inline use ─────────────────────────────────── */
-// So your other scripts can call:  Nav.go('dashboard')  or  Auth.setUser(u)
-window.VendlyNav  = Nav;
+window.VendlyNav = Nav;
 window.VendlyAuth = Auth;

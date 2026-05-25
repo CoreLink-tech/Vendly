@@ -907,7 +907,7 @@
         </button>
 
         <div class="nav-label">Store</div>
-        <button class="nav-item" onclick="showToast('Analytics coming soon', 'info')">
+        <button class="nav-item" onclick="scrollToAnalytics()">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="20" x2="18" y2="10"/>
                 <line x1="12" y1="20" x2="12" y2="4"/>
@@ -915,21 +915,21 @@
             </svg>
             Analytics
         </button>
-        <button class="nav-item" onclick="showToast('Settings coming soon', 'info')">
+        <button class="nav-item" onclick="scrollToAccount()">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="3"/>
                 <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
             </svg>
-            Settings
+            Account
         </button>
     </nav>
 
     <div class="sidebar-footer">
         <div class="user-card">
-            <div class="user-avatar">AD</div>
+            <div class="user-avatar" id="userAvatar">VD</div>
             <div style="flex:1;">
-                <div class="user-name">Amaka David</div>
-                <div class="user-store">vendly.com/amaka</div>
+                <div class="user-name" id="userName">Vendor account</div>
+                <div class="user-store" id="userStoreLink">vendly.com/your-store</div>
             </div>
             <button data-logout title="Log out" style="background:none;border:none;cursor:pointer;padding:6px;border-radius:7px;color:var(--grey-mid);display:flex;align-items:center;transition:all 0.18s;" onmouseover="this.style.background='var(--grey-light)';this.style.color='var(--black)'" onmouseout="this.style.background='none';this.style.color='var(--grey-mid)'">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -952,10 +952,10 @@
                     <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
                 </svg>
             </button>
-            <div class="topbar-title">My Store</div>
+            <div class="topbar-title" id="topbarTitle">My Store</div>
         </div>
         <div class="topbar-actions">
-            <button class="btn btn-outline" data-nav="storefront">
+            <button class="btn btn-outline" onclick="openStorefront()">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
                     <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
@@ -985,7 +985,7 @@
                 </div>
                 <div>
                     <div class="store-banner-label">Your store link</div>
-                    <div class="store-banner-link">vendly.com/<span>amaka</span></div>
+                    <div class="store-banner-link" id="storeBannerLink">vendly.com/<span id="storeSlugText">your-store</span></div>
                 </div>
             </div>
             <div class="store-banner-actions">
@@ -995,7 +995,7 @@
                     </svg>
                     Copy link
                 </button>
-                <button class="banner-btn banner-btn-view" data-nav="storefront">
+                <button class="banner-btn banner-btn-view" onclick="openStorefront()">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
                         <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
@@ -1006,7 +1006,7 @@
         </div>
 
         <!-- STATS -->
-        <div class="stats-row">
+        <div class="stats-row" id="analyticsSection">
             <div class="stat-card">
                 <div class="stat-header">
                     <div class="stat-label">Total products</div>
@@ -1031,32 +1031,36 @@
                         </svg>
                     </div>
                 </div>
-                <div class="stat-value">248</div>
-                <div class="stat-sub"><strong>+12</strong> this week</div>
+                <div class="stat-value" id="stat-views">0</div>
+                <div class="stat-sub" id="stat-views-sub">No visits recorded yet</div>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
-                    <div class="stat-label">Orders sent</div>
+                    <div class="stat-label">Unique visitors</div>
                     <div class="stat-icon">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 010 7.75"/>
                         </svg>
                     </div>
                 </div>
-                <div class="stat-value">34</div>
-                <div class="stat-sub"><strong>+5</strong> this week</div>
+                <div class="stat-value" id="stat-visitors">0</div>
+                <div class="stat-sub" id="stat-visitors-sub">Distinct browsers tracked</div>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
-                    <div class="stat-label">Store link</div>
+                    <div class="stat-label">Latest visit</div>
                     <div class="stat-icon">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                            <path d="M12 8v4l3 3"/>
+                            <circle cx="12" cy="12" r="10"/>
                         </svg>
                     </div>
                 </div>
-                <div class="stat-value">Live</div>
-                <div class="stat-sub"><strong>Active</strong> and visible</div>
+                <div class="stat-value" id="stat-last-visit">None yet</div>
+                <div class="stat-sub" id="stat-last-visit-sub">Waiting for your first visitor</div>
             </div>
         </div>
 
@@ -1157,6 +1161,33 @@
                 </button>
             </div>
         </div>
+
+        <div class="section-header" id="accountSection" style="margin-top:34px;">
+            <div>
+                <div class="section-title">Account</div>
+                <div class="section-count">Manage your vendor account</div>
+            </div>
+        </div>
+
+        <div class="add-product-card" style="display:block;">
+            <div class="add-product-title">
+                Delete account
+            </div>
+            <div style="padding:22px 24px 24px; display:grid; gap:12px;">
+                <p style="color:var(--grey-dark); line-height:1.6;">This permanently deletes your login, storefront, products, and analytics history. This action cannot be undone.</p>
+                <div>
+                    <button class="btn btn-danger" onclick="openAccountDeleteModal()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                            <path d="M10 11v6"/><path d="M14 11v6"/>
+                            <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                        </svg>
+                        Delete my account
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
 
@@ -1180,6 +1211,25 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="accountDeleteModal">
+    <div class="modal">
+        <div class="modal-title">Delete your account?</div>
+        <div class="modal-sub">Your store, products, images, and visit analytics will be removed permanently.</div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeAccountDeleteModal()">Cancel</button>
+            <button class="btn btn-danger" id="confirmAccountDeleteBtn" onclick="confirmAccountDelete()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                    <path d="M10 11v6"/><path d="M14 11v6"/>
+                    <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                </svg>
+                Yes, delete account
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast">
     <svg class="toast-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
@@ -1192,20 +1242,217 @@
     let products = [];
     let deleteTarget = null;
     let uploadedImage = null;
+    let currentVendor = VendlyAuth.getUser() || null;
+    let accountDeleteBusy = false;
+    const STORAGE_BUCKET = 'vendor-images';
+    const PUBLIC_BUCKET_PATH = `/storage/v1/object/public/${STORAGE_BUCKET}/`;
+
+    function buildStorefrontUrl(slug) {
+        const safeSlug = encodeURIComponent(slug || '');
+        if (!safeSlug) return 'storefront.html';
+
+        try {
+            const url = new URL(window.location.href);
+            url.pathname = url.pathname.replace(/[^/]*$/, 'storefront.html');
+            url.search = `?slug=${safeSlug}`;
+            url.hash = '';
+            return url.toString();
+        } catch (_err) {
+            return `storefront.html?slug=${safeSlug}`;
+        }
+    }
+
+    function formatRelativeVisit(dateString) {
+        if (!dateString) return 'None yet';
+
+        const visitDate = new Date(dateString);
+        if (Number.isNaN(visitDate.getTime())) return 'None yet';
+
+        const diffMs = Date.now() - visitDate.getTime();
+        const diffMinutes = Math.max(1, Math.floor(diffMs / 60000));
+        if (diffMinutes < 60) return `${diffMinutes}m ago`;
+
+        const diffHours = Math.floor(diffMinutes / 60);
+        if (diffHours < 24) return `${diffHours}h ago`;
+
+        const diffDays = Math.floor(diffHours / 24);
+        if (diffDays < 7) return `${diffDays}d ago`;
+
+        return visitDate.toLocaleDateString('en-NG', { day: 'numeric', month: 'short' });
+    }
+
+    function setText(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    }
+
+    function updateVendorUi(vendor = currentVendor) {
+        currentVendor = vendor || currentVendor || VendlyAuth.getUser() || {};
+
+        const name = currentVendor?.displayName || currentVendor?.storeName || currentVendor?.email || 'Vendor account';
+        const storeName = currentVendor?.storeName || 'My Store';
+        const slug = currentVendor?.slug || 'your-store';
+        const storefrontUrl = buildStorefrontUrl(currentVendor?.slug);
+
+        setText('userAvatar', currentVendor?.initials || 'VD');
+        setText('userName', name);
+        setText('userStoreLink', `vendly.com/${slug}`);
+        setText('topbarTitle', storeName);
+        setText('storeSlugText', slug);
+
+        const bannerLink = document.getElementById('storeBannerLink');
+        if (bannerLink) bannerLink.innerHTML = `vendly.com/<span id="storeSlugText">${slug}</span>`;
+
+        const viewButtons = document.querySelectorAll('[onclick="openStorefront()"]');
+        viewButtons.forEach(button => button.disabled = !currentVendor?.slug);
+
+        return storefrontUrl;
+    }
+
+    async function refreshVendorContext() {
+        if (typeof VendlyAuth.refreshUser !== 'function') {
+            currentVendor = VendlyAuth.getUser() || currentVendor;
+            updateVendorUi(currentVendor);
+            return currentVendor;
+        }
+
+        const refreshed = await VendlyAuth.refreshUser();
+        currentVendor = refreshed || VendlyAuth.getUser() || currentVendor;
+        updateVendorUi(currentVendor);
+        return currentVendor;
+    }
+
+    function normalizeProduct(product) {
+        const description = product?.description ?? product?.desc ?? '';
+        const imageUrl = product?.image_url ?? product?.image ?? null;
+        const numericPrice = typeof product?.price === 'number' ? product.price : Number(product?.price || 0);
+
+        return {
+            ...product,
+            id: String(product?.id ?? ''),
+            description,
+            desc: description,
+            image_url: imageUrl,
+            image: imageUrl,
+            price: Number.isFinite(numericPrice) ? numericPrice : 0
+        };
+    }
+
+    function readBlobAsDataUrl(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    function getFileExtension(file) {
+        const fileName = file?.name || '';
+        const lastDot = fileName.lastIndexOf('.');
+        if (lastDot !== -1) return fileName.slice(lastDot + 1).toLowerCase();
+
+        const mimeType = file?.type || '';
+        if (mimeType.startsWith('image/')) {
+            return mimeType.split('/')[1].toLowerCase().replace('jpeg', 'jpg');
+        }
+
+        return 'bin';
+    }
+
+    function slugifyFilePart(value) {
+        return (value || 'product')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .slice(0, 48) || 'product';
+    }
+
+    function getStoragePathFromPublicUrl(url) {
+        if (!url || typeof url !== 'string') return null;
+        const markerIndex = url.indexOf(PUBLIC_BUCKET_PATH);
+        if (markerIndex === -1) return null;
+        return decodeURIComponent(url.slice(markerIndex + PUBLIC_BUCKET_PATH.length).split('?')[0]);
+    }
+
+    async function uploadProductImage(ownerId, productName) {
+        if (!window.supabase || !uploadedImage?.blob) return null;
+
+        const fileName = `${Date.now()}-${slugifyFilePart(productName)}.${uploadedImage.ext}`;
+        const storagePath = `${ownerId}/${fileName}`;
+        const storage = window.supabase.storage.from(STORAGE_BUCKET);
+        const { error } = await storage.upload(storagePath, uploadedImage.blob, {
+            cacheControl: '3600',
+            contentType: uploadedImage.contentType,
+            upsert: false
+        });
+
+        if (error) throw error;
+
+        const { data } = storage.getPublicUrl(storagePath);
+        return {
+            path: storagePath,
+            publicUrl: data?.publicUrl || null
+        };
+    }
 
     async function loadProducts() {
         try {
-            if (!window.supabase) { renderProducts(); return; }
-            const user = VendlyAuth.getUser();
+            const client = await window.waitForSupabaseClient().catch(() => null);
+            if (!client) { renderProducts(); return; }
+            const user = currentVendor || VendlyAuth.getUser();
             if (!user || !user.id) { renderProducts(); return; }
-            const { data, error } = await window.supabase.from('products').select('*').eq('owner_id', user.id).order('id', { ascending: false });
+            const { data, error } = await client.from('products').select('*').eq('owner_id', user.id).order('created_at', { ascending: false });
             if (error) { console.warn('Failed to load products', error.message); renderProducts(); return; }
-            products = data || [];
+            products = (data || []).map(normalizeProduct);
             renderProducts();
         } catch (err) {
             console.error('loadProducts error', err);
             renderProducts();
         }
+    }
+
+    async function loadAnalytics() {
+        try {
+            const client = await window.waitForSupabaseClient().catch(() => null);
+            const user = currentVendor || VendlyAuth.getUser();
+            if (!client || !user?.id) return;
+
+            const { data, error } = await client
+                .from('store_views')
+                .select('viewed_at, visitor_key')
+                .eq('owner_id', user.id)
+                .order('viewed_at', { ascending: false });
+
+            if (error) {
+                console.warn('Failed to load analytics', error.message);
+                return;
+            }
+
+            const views = data || [];
+            const last7Days = new Date();
+            last7Days.setDate(last7Days.getDate() - 7);
+            last7Days.setHours(0, 0, 0, 0);
+
+            const weeklyViews = views.filter(view => new Date(view.viewed_at) >= last7Days).length;
+            const uniqueVisitors = new Set(views.map(view => view.visitor_key).filter(Boolean)).size;
+            const lastVisit = views[0]?.viewed_at || null;
+
+            setText('stat-views', String(views.length));
+            setText('stat-views-sub', weeklyViews > 0 ? `${weeklyViews} in the last 7 days` : 'No visits in the last 7 days');
+            setText('stat-visitors', String(uniqueVisitors));
+            setText('stat-visitors-sub', uniqueVisitors > 0 ? 'Distinct browsers tracked' : 'No visitor IDs recorded yet');
+            setText('stat-last-visit', formatRelativeVisit(lastVisit));
+            setText('stat-last-visit-sub', lastVisit ? new Date(lastVisit).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' }) : 'Waiting for your first visitor');
+        } catch (err) {
+            console.warn('Analytics load failed', err.message || err);
+        }
+    }
+
+    async function initializeDashboard() {
+        updateVendorUi(currentVendor);
+        await refreshVendorContext();
+        await Promise.all([loadProducts(), loadAnalytics()]);
     }
 
     // SIDEBAR TOGGLE
@@ -1275,13 +1522,7 @@
         }
 
         if (!blob) throw new Error('Unable to convert image');
-
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
+        return blob;
     }
 
     // IMAGE UPLOAD
@@ -1294,20 +1535,29 @@
         const existing = zone.querySelector('img');
         if (existing) existing.remove();
 
+        let imageBlob = null;
+        let imageExt = 'webp';
+        let contentType = 'image/webp';
+
         try {
-            uploadedImage = await convertImageFileToWebP(file, 200);
+            imageBlob = await convertImageFileToWebP(file, 200);
         } catch (err) {
             console.warn('WebP conversion failed, falling back to original image', err);
-            const reader = new FileReader();
-            uploadedImage = await new Promise((resolve, reject) => {
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
+            imageBlob = file;
+            imageExt = getFileExtension(file);
+            contentType = file.type || 'application/octet-stream';
         }
 
+        const previewUrl = await readBlobAsDataUrl(imageBlob);
+        uploadedImage = {
+            blob: imageBlob,
+            previewUrl,
+            ext: imageExt,
+            contentType
+        };
+
         const img = document.createElement('img');
-        img.src = uploadedImage;
+        img.src = uploadedImage.previewUrl;
         zone.prepend(img);
         zone.querySelector('svg').style.display = 'none';
         zone.querySelector('.upload-text').style.display = 'none';
@@ -1339,7 +1589,28 @@
         try {
             if (window.supabase && VendlyAuth.getUser() && VendlyAuth.getUser().id) {
                 const owner_id = VendlyAuth.getUser().id;
-                const { data, error } = await window.supabase.from('products').insert([{ name, desc, price: Number(price), image_url: uploadedImage, status: 'live', owner_id }]);
+                let uploadedAsset = null;
+
+                if (uploadedImage?.blob) {
+                    uploadedAsset = await uploadProductImage(owner_id, name);
+                }
+
+                const { error } = await window.supabase.from('products').insert([{
+                    name,
+                    description: desc || null,
+                    price: Number(price),
+                    image_url: uploadedAsset?.publicUrl || null,
+                    status: 'live',
+                    owner_id
+                }]);
+
+                if (error && uploadedAsset?.path) {
+                    const cleanup = await window.supabase.storage.from(STORAGE_BUCKET).remove([uploadedAsset.path]);
+                    if (cleanup.error) {
+                        console.warn('Storage cleanup failed', cleanup.error.message);
+                    }
+                }
+
                 if (error) throw error;
                 await loadProducts();
                 closeAddForm();
@@ -1352,16 +1623,17 @@
         }
 
         const product = {
-            id: Date.now(),
+            id: String(Date.now()),
             name,
+            description: desc,
             desc,
             price: Number(price),
-            image: uploadedImage,
-            image_url: uploadedImage,
+            image: uploadedImage?.previewUrl || null,
+            image_url: uploadedImage?.previewUrl || null,
             status: 'live'
         };
 
-        products.unshift(product);
+        products.unshift(normalizeProduct(product));
         closeAddForm();
         renderProducts();
         showToast(`"${name}" added to your store`);
@@ -1405,11 +1677,16 @@
         countLabel.textContent = `${products.length} product${products.length > 1 ? 's' : ''} in your store`;
         sortBtn.style.display = 'flex';
 
-        grid.innerHTML = products.map(p => `
+        grid.innerHTML = products.map(p => {
+            const productId = JSON.stringify(p.id);
+            const imageSrc = p.image || p.image_url;
+            const description = p.description || p.desc || 'No description';
+
+            return `
             <div class="product-card" id="card-${p.id}">
                 <div class="product-thumb">
-                    ${p.image || p.image_url
-                        ? `<img src="${p.image || p.image_url}" alt="${p.name}">`
+                    ${imageSrc
+                        ? `<img src="${imageSrc}" alt="${p.name}">`
                         : `<div class="product-thumb-placeholder">
                             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -1425,13 +1702,13 @@
                                 <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
                             </svg>
                         </button>
-                        <button class="overlay-btn" title="Toggle visibility" onclick="toggleStatus(${p.id})">
+                        <button class="overlay-btn" title="Toggle visibility" onclick='toggleStatus(${productId})'>
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                 <circle cx="12" cy="12" r="3"/>
                             </svg>
                         </button>
-                        <button class="overlay-btn delete" title="Delete" onclick="openDeleteModal(${p.id})">
+                        <button class="overlay-btn delete" title="Delete" onclick='openDeleteModal(${productId})'>
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="3 6 5 6 21 6"/>
                                 <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
@@ -1442,7 +1719,7 @@
                 </div>
                 <div class="product-info">
                     <div class="product-name">${p.name}</div>
-                    <div class="product-desc-preview">${p.desc || 'No description'}</div>
+                    <div class="product-desc-preview">${description}</div>
                     <div class="product-footer">
                         <div class="product-price">₦${p.price.toLocaleString()}</div>
                         <div class="product-status ${p.status === 'live' ? 'status-live' : 'status-hidden'}">
@@ -1451,7 +1728,8 @@
                     </div>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
     }
 
     // TOGGLE STATUS
@@ -1482,6 +1760,13 @@
             try {
                 if (window.supabase && VendlyAuth.getUser() && VendlyAuth.getUser().id) {
                     await window.supabase.from('products').delete().eq('id', deleteTarget);
+                    const imagePath = getStoragePathFromPublicUrl(p?.image_url);
+                    if (imagePath) {
+                        const cleanup = await window.supabase.storage.from(STORAGE_BUCKET).remove([imagePath]);
+                        if (cleanup.error) {
+                            console.warn('Storage delete failed', cleanup.error.message);
+                        }
+                    }
                     await loadProducts();
                 } else {
                     products = products.filter(p => p.id !== deleteTarget);
@@ -1499,15 +1784,67 @@
 
     // COPY LINK
     function copyLink() {
-        navigator.clipboard.writeText('https://vendly.com/amaka').then(() => {
+        const slug = currentVendor?.slug;
+        if (!slug) {
+            showToast('Your store link is not ready yet', 'error');
+            return;
+        }
+
+        navigator.clipboard.writeText(buildStorefrontUrl(slug)).then(() => {
             showToast('Store link copied to clipboard');
         }).catch(() => {
             showToast('Could not copy link', 'error');
         });
     }
 
-    function viewStorefront() {
-        VendlyNav.go('storefront');
+    function openStorefront() {
+        if (!currentVendor?.slug) {
+            showToast('Your storefront is not ready yet', 'error');
+            return;
+        }
+        window.location.href = buildStorefrontUrl(currentVendor.slug);
+    }
+
+    function scrollToAnalytics() {
+        document.getElementById('analyticsSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function scrollToAccount() {
+        document.getElementById('accountSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function openAccountDeleteModal() {
+        document.getElementById('accountDeleteModal').classList.add('open');
+    }
+
+    function closeAccountDeleteModal() {
+        document.getElementById('accountDeleteModal').classList.remove('open');
+    }
+
+    async function confirmAccountDelete() {
+        if (accountDeleteBusy) return;
+
+        try {
+            accountDeleteBusy = true;
+            const button = document.getElementById('confirmAccountDeleteBtn');
+            if (button) button.disabled = true;
+
+            const client = await window.waitForSupabaseClient();
+            const { error } = await client.rpc('delete_my_account');
+            if (error) throw error;
+
+            await VendlyAuth.clearUser();
+            closeAccountDeleteModal();
+            showToast('Your account has been deleted');
+            window.setTimeout(() => VendlyNav.go('signup'), 900);
+        } catch (err) {
+            console.warn('Account delete failed', err);
+            showToast(err.message || 'Could not delete your account', 'error');
+        } finally {
+            accountDeleteBusy = false;
+            const button = document.getElementById('confirmAccountDeleteBtn');
+            if (button) button.disabled = false;
+        }
     }
 
     // TOAST
@@ -1535,9 +1872,12 @@
     document.getElementById('deleteModal').addEventListener('click', function(e) {
         if (e.target === this) closeDeleteModal();
     });
+    document.getElementById('accountDeleteModal').addEventListener('click', function(e) {
+        if (e.target === this) closeAccountDeleteModal();
+    });
 
     // INIT
-    loadProducts();
+    initializeDashboard();
 </script>
 
 </body>

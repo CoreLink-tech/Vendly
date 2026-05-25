@@ -1186,20 +1186,48 @@
         btn.disabled = true;
 
         try {
-            if (!window.supabase) throw new Error('Supabase not initialized');
+            const client = await window.waitForSupabaseClient();
 
-            const { data, error } = await window.supabase.auth.signUp({ email, password }, { data: { firstName, lastName } });
+            const { data, error } = await client.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        firstName,
+                        lastName,
+                        storeName,
+                        slug,
+                        phone
+                    }
+                }
+            });
             if (error) throw error;
             const user = (data && data.user) ? data.user : data;
 
-            // Try to create a store row; if the table doesn't exist this will fail quietly
+            // Try to create profile/store rows; if policies or tables are not ready this will fail quietly
             try {
-                await window.supabase.from('stores').insert([{ owner_id: user.id, name: storeName, slug, whatsapp: phone }]);
+                await client.from('profiles').upsert([{
+                    id: user.id,
+                    first_name: firstName,
+                    last_name: lastName
+                }], { onConflict: 'id' });
+
+                await client.from('stores').upsert([{
+                    owner_id: user.id,
+                    name: storeName,
+                    slug,
+                    whatsapp: phone
+                }], { onConflict: 'slug' });
             } catch (ie) {
-                console.warn('Could not insert store row:', ie.message || ie);
+                console.warn('Could not insert vendor profile/store row:', ie.message || ie);
             }
 
-            VendlyAuth.setUser(user);
+            if (data?.session) {
+                await VendlyAuth.setUser(user);
+            } else {
+                localStorage.removeItem('vendly_user');
+                showToast('Check your email to confirm your account before logging in.', 'success');
+            }
             document.getElementById('successSlug').textContent = slug;
             document.getElementById('formView').style.display = 'none';
             document.getElementById('successScreen').classList.add('show');

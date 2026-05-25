@@ -3,18 +3,40 @@
   const SUPABASE_URL = 'https://wzdnnccyvdbrbkqsxsiw.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6ZG5uY2N5dmRicmJrcXN4c2l3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MzAzNjgsImV4cCI6MjA5NTMwNjM2OH0.BvppX4sCOZdSUeEXziNO3eQ93spbQR7ucCKdOJNGX24';
 
-  // Load UMD build of supabase-js then initialize client
+  let resolveClient;
+  let rejectClient;
+
+  window.supabaseReady = new Promise((resolve, reject) => {
+    resolveClient = resolve;
+    rejectClient = reject;
+  });
+
+  window.waitForSupabaseClient = async function(timeoutMs = 15000) {
+    if (window.supabase) return window.supabase;
+
+    const timeout = new Promise((_, reject) => {
+      window.setTimeout(() => reject(new Error('Supabase client timed out while loading.')), timeoutMs);
+    });
+
+    return Promise.race([window.supabaseReady, timeout]);
+  };
+
   const s = document.createElement('script');
-  s.async = false;
   s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js';
   s.onload = () => {
     try {
       window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      resolveClient(window.supabase);
       console.info('Supabase client initialized');
     } catch (err) {
+      rejectClient(err);
       console.error('Failed to initialize Supabase client', err);
     }
   };
-  s.onerror = () => console.error('Failed to load Supabase script');
+  s.onerror = () => {
+    const error = new Error('Failed to load the Supabase script.');
+    rejectClient(error);
+    console.error(error.message);
+  };
   document.head.appendChild(s);
 })();

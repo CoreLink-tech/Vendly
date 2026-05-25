@@ -113,9 +113,9 @@
 <header class="store-header" id="store-header">
   <div class="header-stripe"></div>
   <div class="header-inner">
-    <div class="store-avatar">A</div>
+    <div class="store-avatar" id="store-avatar">V</div>
     <div class="store-meta">
-      <div class="store-name">Amaka's Boutique</div>
+      <div class="store-name">Vendly Store</div>
       <div class="store-tagline">
         <div class="store-tagline-dot"></div>
         Fashion &amp; Accessories · Lagos
@@ -189,9 +189,10 @@
 <div class="toast-container" id="toast-container"></div>
 
 <script>
-  const DEFAULT_STORE = { name: "Amaka's Boutique", slug: "amaka", phone: "2348012345678" };
-
-  const STORE = getStoredVendor() || DEFAULT_STORE;
+  const EMPTY_STORE = { id: null, owner_id: null, name: 'Vendly Store', slug: '', phone: '' };
+  let STORE = { ...EMPTY_STORE };
+  let PRODUCTS = [];
+  let gridListenerAttached = false;
 
   function normalizeWhatsAppNumber(input) {
     const digits = input.replace(/\D/g, '');
@@ -204,24 +205,46 @@
   function getStoredVendor() {
     if (!window.VendlyAuth || typeof window.VendlyAuth.getUser !== 'function') return null;
     const user = window.VendlyAuth.getUser();
-    if (!user || !user.storeName || !user.slug || !user.phone) return null;
-    const phone = normalizeWhatsAppNumber(user.phone);
-    if (!phone) return null;
+    if (!user || !user.storeName || !user.slug) return null;
     return {
+      owner_id: user.id || null,
       name: user.storeName,
       slug: user.slug,
-      phone,
+      phone: normalizeWhatsAppNumber(user.phone || ''),
     };
   }
 
-  const PRODUCTS = [
-    { id: 1, name: "Ankara Dress",    price: 6500, icon: "dress"   },
-    { id: 2, name: "Canvas Sneakers", price: 3800, icon: "shoe"    },
-    { id: 3, name: "Mini Handbag",    price: 4200, icon: "bag"     },
-    { id: 4, name: "Gold Necklace",   price: 2100, icon: "jewelry" },
-    { id: 5, name: "Floral Blouse",   price: 5100, icon: "shirt"   },
-    { id: 6, name: "Leather Belt",    price: 1800, icon: "belt"    },
-  ];
+  function getRequestedSlug() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('slug') || getStoredVendor()?.slug || '';
+  }
+
+  function getVisitorKey() {
+    const storageKey = 'vendly_visitor_id';
+    const existing = localStorage.getItem(storageKey);
+    if (existing) return existing;
+
+    const generated = window.crypto?.randomUUID
+      ? window.crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+    localStorage.setItem(storageKey, generated);
+    return generated;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function iconForIndex(index) {
+    const iconNames = Object.keys(ICONS);
+    return ICONS[iconNames[index % iconNames.length]];
+  }
 
   const ICONS = {
     dress: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8h16M20 8l-8 16h8v28h24V24h8L40 8"/><path d="M24 8c0 4.4-4 8-8 8M40 8c0 4.4 4 8 8 8"/></svg>`,
@@ -233,9 +256,9 @@
   };
 
   const cart = {};
-  const cartTotal = () => PRODUCTS.reduce((s, p) => s + (cart[p.id] || 0) * p.price, 0);
-  const cartCount = () => Object.values(cart).reduce((a, b) => a + b, 0);
-  const fmt = n => '₦' + n.toLocaleString('en-NG');
+  const cartTotal = () => PRODUCTS.reduce((sum, product) => sum + (cart[product.id] || 0) * Number(product.price || 0), 0);
+  const cartCount = () => Object.values(cart).reduce((sum, value) => sum + value, 0);
+  const fmt = n => `₦${Number(n || 0).toLocaleString('en-NG')}`;
 
   function renderGrid() {
     const grid = document.getElementById('product-grid');
