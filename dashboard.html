@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vendly — Dashboard</title>
+    <script src="vendly-nav.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -873,7 +874,7 @@
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-    <a href="#" class="sidebar-logo">Vend<span>ly</span></a>
+    <a href="#" class="sidebar-logo" data-nav="landing">Vend<span>ly</span></a>
 
     <nav class="sidebar-nav">
         <div class="nav-label">Main</div>
@@ -924,10 +925,17 @@
     <div class="sidebar-footer">
         <div class="user-card">
             <div class="user-avatar">AD</div>
-            <div>
+            <div style="flex:1;">
                 <div class="user-name">Amaka David</div>
                 <div class="user-store">vendly.com/amaka</div>
             </div>
+            <button data-logout title="Log out" style="background:none;border:none;cursor:pointer;padding:6px;border-radius:7px;color:var(--grey-mid);display:flex;align-items:center;transition:all 0.18s;" onmouseover="this.style.background='var(--grey-light)';this.style.color='var(--black)'" onmouseout="this.style.background='none';this.style.color='var(--grey-mid)'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </button>
         </div>
     </div>
 </aside>
@@ -945,7 +953,7 @@
             <div class="topbar-title">My Store</div>
         </div>
         <div class="topbar-actions">
-            <button class="btn btn-outline" onclick="viewStorefront()">
+            <button class="btn btn-outline" data-nav="storefront">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
                     <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
@@ -985,7 +993,7 @@
                     </svg>
                     Copy link
                 </button>
-                <button class="banner-btn banner-btn-view" onclick="viewStorefront()">
+                <button class="banner-btn banner-btn-view" data-nav="storefront">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
                         <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
@@ -1399,7 +1407,7 @@
     }
 
     function viewStorefront() {
-        showToast('Storefront page coming next');
+        VendlyNav.go('storefront');
     }
 
     // TOAST

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vendly — Log In</title>
+  <script src="vendly-nav.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -30,7 +31,6 @@
       background: var(--grey-pale);
     }
 
-    /* ── Layout ── */
     .page {
       min-height: 100vh;
       display: grid;
@@ -41,7 +41,6 @@
       .page { grid-template-columns: 1fr 1fr; }
     }
 
-    /* ── Left panel (decorative) ── */
     .panel-left {
       display: none;
       position: relative;
@@ -56,7 +55,6 @@
       .panel-left { display: flex; }
     }
 
-    /* subtle dot grid */
     .panel-left::before {
       content: '';
       position: absolute;
@@ -65,7 +63,6 @@
       background-size: 28px 28px;
     }
 
-    /* large decorative circle */
     .panel-left::after {
       content: '';
       position: absolute;
@@ -140,7 +137,6 @@
       max-width: 320px;
     }
 
-    /* Store preview card */
     .preview-card {
       margin-top: 52px;
       background: rgba(255,255,255,0.08);
@@ -210,7 +206,6 @@
       font-weight: 400;
     }
 
-    /* panel footer */
     .panel-footer {
       position: relative;
       z-index: 1;
@@ -221,7 +216,6 @@
       color: rgba(255,255,255,0.35);
     }
 
-    /* ── Right panel (form) ── */
     .panel-right {
       display: flex;
       flex-direction: column;
@@ -232,17 +226,15 @@
     }
 
     @media (min-width: 900px) {
-      .panel-right {
-        padding: 60px 48px;
-      }
+      .panel-right { padding: 60px 48px; }
     }
 
     .form-wrapper {
       width: 100%;
       max-width: 420px;
+      animation: fadeUp 0.45s ease both;
     }
 
-    /* Mobile-only logo */
     .mobile-logo {
       display: flex;
       align-items: center;
@@ -272,10 +264,7 @@
       color: var(--black);
     }
 
-    /* Form header */
-    .form-header {
-      margin-bottom: 32px;
-    }
+    .form-header { margin-bottom: 32px; }
 
     .form-header h1 {
       font-family: 'Instrument Serif', serif;
@@ -304,10 +293,7 @@
 
     .form-header p a:hover { text-decoration: underline; }
 
-    /* Form fields */
-    .field {
-      margin-bottom: 18px;
-    }
+    .field { margin-bottom: 18px; }
 
     .field label {
       display: block;
@@ -318,9 +304,7 @@
       letter-spacing: 0.1px;
     }
 
-    .input-wrap {
-      position: relative;
-    }
+    .input-wrap { position: relative; }
 
     .input-icon {
       position: absolute;
@@ -349,21 +333,15 @@
       -webkit-appearance: none;
     }
 
-    .input-wrap input::placeholder {
-      color: #c0c8d0;
-      font-weight: 300;
-    }
+    .input-wrap input::placeholder { color: #c0c8d0; font-weight: 300; }
 
     .input-wrap input:focus {
       border-color: var(--green);
       box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
     }
 
-    .input-wrap:focus-within .input-icon {
-      color: var(--green);
-    }
+    .input-wrap:focus-within .input-icon { color: var(--green); }
 
-    /* Password toggle */
     .pw-toggle {
       position: absolute;
       right: 14px;
@@ -381,7 +359,6 @@
 
     .pw-toggle:hover { color: var(--grey-dark); }
 
-    /* Forgot password row */
     .field-row {
       display: flex;
       align-items: center;
@@ -389,9 +366,7 @@
       margin-bottom: 7px;
     }
 
-    .field-row label {
-      margin-bottom: 0;
-    }
+    .field-row label { margin-bottom: 0; }
 
     .forgot-link {
       font-size: 12px;
@@ -402,7 +377,6 @@
 
     .forgot-link:hover { text-decoration: underline; }
 
-    /* Remember me checkbox */
     .remember-row {
       display: flex;
       align-items: center;
@@ -424,11 +398,7 @@
       background: var(--white);
     }
 
-    .custom-checkbox.checked {
-      background: var(--green);
-      border-color: var(--green);
-    }
-
+    .custom-checkbox.checked { background: var(--green); border-color: var(--green); }
     .custom-checkbox svg { display: none; }
     .custom-checkbox.checked svg { display: block; }
 
@@ -439,7 +409,6 @@
       user-select: none;
     }
 
-    /* Submit button */
     .btn-submit {
       width: 100%;
       height: 52px;
@@ -469,7 +438,6 @@
 
     .btn-submit:active { transform: translateY(0); }
 
-    /* Ripple */
     .btn-submit .ripple {
       position: absolute;
       border-radius: 50%;
@@ -479,11 +447,8 @@
       pointer-events: none;
     }
 
-    @keyframes ripple {
-      to { transform: scale(4); opacity: 0; }
-    }
+    @keyframes ripple { to { transform: scale(4); opacity: 0; } }
 
-    /* Loading spinner */
     .spinner {
       width: 18px;
       height: 18px;
@@ -499,30 +464,6 @@
     .btn-submit.loading .btn-label { display: none; }
     .btn-submit.loading .spinner { display: block; }
 
-    /* Divider */
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 24px 0;
-    }
-
-    .divider::before,
-    .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--grey-light);
-    }
-
-    .divider span {
-      font-size: 12px;
-      color: var(--grey-mid);
-      font-weight: 500;
-      white-space: nowrap;
-    }
-
-    /* Signup prompt */
     .signup-prompt {
       text-align: center;
       margin-top: 28px;
@@ -538,7 +479,6 @@
 
     .signup-prompt a:hover { text-decoration: underline; }
 
-    /* Toast */
     .toast {
       position: fixed;
       bottom: 28px;
@@ -567,7 +507,6 @@
 
     .toast.error { background: #dc2626; }
 
-    /* Error message */
     .field-error {
       font-size: 12px;
       color: #dc2626;
@@ -579,15 +518,9 @@
 
     .field-error.show { display: flex; }
 
-    /* Input error state */
     .input-wrap input.error-input {
       border-color: #dc2626;
       box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
-    }
-
-    /* Entrance animation */
-    .form-wrapper {
-      animation: fadeUp 0.45s ease both;
     }
 
     @keyframes fadeUp {
@@ -595,11 +528,8 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    .panel-body {
-      animation: fadeUp 0.5s ease 0.1s both;
-    }
+    .panel-body { animation: fadeUp 0.5s ease 0.1s both; }
 
-    /* Accessibility */
     :focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
   </style>
 </head>
@@ -607,10 +537,11 @@
 
 <div class="page">
 
-  <!-- ─── Left decorative panel ─── -->
+  <!-- Left panel -->
   <aside class="panel-left">
     <div class="panel-logo">
-      <a href="/">
+      <!-- CHANGE 1: logo now uses data-nav -->
+      <a href="#" data-nav="landing">
         <div class="panel-logo-mark">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
@@ -635,18 +566,9 @@
           </div>
         </div>
         <div class="preview-stats">
-          <div class="preview-stat">
-            <strong>24</strong>
-            <span>Products</span>
-          </div>
-          <div class="preview-stat">
-            <strong>138</strong>
-            <span>Orders</span>
-          </div>
-          <div class="preview-stat">
-            <strong>4.9</strong>
-            <span>Rating</span>
-          </div>
+          <div class="preview-stat"><strong>24</strong><span>Products</span></div>
+          <div class="preview-stat"><strong>138</strong><span>Orders</span></div>
+          <div class="preview-stat"><strong>4.9</strong><span>Rating</span></div>
         </div>
       </div>
     </div>
@@ -656,12 +578,12 @@
     </div>
   </aside>
 
-  <!-- ─── Right form panel ─── -->
+  <!-- Right form panel -->
   <main class="panel-right">
     <div class="form-wrapper">
 
-      <!-- Mobile logo -->
-      <a href="/" class="mobile-logo">
+      <!-- CHANGE 2: mobile logo now uses data-nav -->
+      <a href="#" data-nav="landing" class="mobile-logo">
         <div class="mobile-logo-mark">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
@@ -674,7 +596,8 @@
 
       <div class="form-header">
         <h1>Welcome <em>back</em></h1>
-        <p>Don't have an account? <a href="/signup.html">Create one free</a></p>
+        <!-- CHANGE 3: signup link now uses data-nav -->
+        <p>Don't have an account? <a href="#" data-nav="signup">Create one free</a></p>
       </div>
 
       <!-- Email field -->
@@ -699,7 +622,7 @@
       <div class="field">
         <div class="field-row">
           <label for="password">Password</label>
-          <a href="/forgot-password.html" class="forgot-link">Forgot password?</a>
+          <a href="#" class="forgot-link">Forgot password?</a>
         </div>
         <div class="input-wrap">
           <span class="input-icon">
@@ -738,8 +661,9 @@
         <div class="spinner"></div>
       </button>
 
+      <!-- CHANGE 4: signup prompt link now uses data-nav -->
       <div class="signup-prompt">
-        New to Vendly? <a href="/signup.html">Create your free store</a>
+        New to Vendly? <a href="#" data-nav="signup">Create your free store</a>
       </div>
 
     </div>
@@ -757,7 +681,6 @@
 </div>
 
 <script>
-  // ── Ripple effect ──
   const loginBtn = document.getElementById('login-btn');
 
   loginBtn.addEventListener('click', function(e) {
@@ -771,7 +694,6 @@
     handleLogin();
   });
 
-  // ── Password toggle ──
   const pwInput = document.getElementById('password');
   const pwToggle = document.getElementById('pw-toggle');
   const eyeIcon = document.getElementById('eye-icon');
@@ -787,7 +709,6 @@
     pwToggle.setAttribute('aria-label', pwVisible ? 'Hide password' : 'Show password');
   });
 
-  // ── Remember me checkbox ──
   const checkbox = document.getElementById('remember-checkbox');
   const rememberLabel = document.getElementById('remember-label');
   let remembered = false;
@@ -804,7 +725,6 @@
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleRemember(); }
   });
 
-  // ── Validation ──
   function showError(field, msg) {
     const input = document.getElementById(field);
     const error = document.getElementById(field + '-error');
@@ -842,7 +762,6 @@
     return valid;
   }
 
-  // ── Toast ──
   let toastTimer;
   function showToast(msg, type = '') {
     const toast = document.getElementById('toast');
@@ -850,36 +769,29 @@
     text.textContent = msg;
     toast.className = 'toast' + (type ? ' ' + type : '');
     clearTimeout(toastTimer);
-    // Force reflow
     void toast.offsetWidth;
     toast.classList.add('show');
     toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
   }
 
-  // ── Login handler ──
+  // CHANGE 5: on success, navigate to dashboard using VendlyNav
   function handleLogin() {
     if (!validate()) return;
 
     loginBtn.classList.add('loading');
     loginBtn.disabled = true;
 
-    // Simulate auth delay — replace with real Supabase call
     setTimeout(() => {
       loginBtn.classList.remove('loading');
       loginBtn.disabled = false;
 
-      // Demo: any email/pass works
-      // On success → redirect to dashboard
-      // window.location.href = '/dashboard.html';
-
       showToast('Login successful — redirecting…');
       setTimeout(() => {
-        // window.location.href = '/dashboard.html';
+        VendlyNav.go('dashboard');
       }, 1200);
     }, 1600);
   }
 
-  // Allow Enter key to submit
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !loginBtn.disabled) handleLogin();
   });

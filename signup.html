@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vendly — Create your store</title>
+    <script src="vendly-nav.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -727,7 +728,8 @@
 
 <!-- LEFT PANEL -->
 <div class="left-panel">
-    <a href="index.html" class="panel-logo">Vend<span>ly</span></a>
+    <!-- CHANGE 1: was href="index.html", now uses data-nav -->
+    <a href="#" data-nav="landing" class="panel-logo">Vend<span>ly</span></a>
 
     <div class="panel-body">
         <h2 class="panel-heading">Your store.<br><em>Ready in</em><br>two minutes.</h2>
@@ -961,8 +963,9 @@
                 <div class="spinner"></div>
             </button>
 
+            <!-- CHANGE 2: was href="login.html", now uses data-nav -->
             <div class="login-link">
-                Already have a store? <a href="login.html">Sign in</a>
+                Already have a store? <a href="#" data-nav="login">Sign in</a>
             </div>
 
         </form>
@@ -986,7 +989,8 @@
                 Copy link
             </button>
         </div>
-        <button class="goto-dashboard" onclick="showToast('Dashboard coming next', 'success')">
+        <!-- CHANGE 3: was showToast('Dashboard coming next'), now goes to dashboard -->
+        <button class="goto-dashboard" onclick="VendlyNav.go('dashboard')">
             Go to dashboard
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>

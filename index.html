@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vendly — Your store. One link.</title>
+    <script src="vendly-nav.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -893,9 +894,11 @@
     <ul class="nav-links">
         <li><a href="#how">How it works</a></li>
         <li><a href="#why">Why Vendly</a></li>
-        <li><a href="#signup">Get started</a></li>
+        <!-- CHANGE 1: added Login link to nav -->
+        <li><a href="#" data-nav="login">Log in</a></li>
     </ul>
-    <a href="#signup" class="btn btn-primary">Start now</a>
+    <!-- CHANGE 2: Start now goes to signup page -->
+    <a href="#" data-nav="signup" class="btn btn-primary">Start now</a>
 </nav>
 
 <!-- HERO -->
@@ -908,7 +911,8 @@
         <h1>Your store.<br><em>One link.</em><br>Orders on WhatsApp.</h1>
         <p>Create an online storefront in minutes. Share one link with your customers. They browse, pick what they want, and their full order drops straight into your WhatsApp.</p>
         <div class="hero-actions">
-            <a href="#signup" class="btn btn-primary btn-large">Create your online store</a>
+            <!-- CHANGE 3: hero CTA goes to signup page -->
+            <a href="#" data-nav="signup" class="btn btn-primary btn-large">Create your online store</a>
             <a href="#how" class="btn btn-outline btn-large">See how it works</a>
         </div>
         <div class="hero-trust">
@@ -1046,7 +1050,7 @@
             <div>
                 <div class="wa-preview">
                     <div class="wa-bubble">
-                        <div class="wa-title">🛍️ New Order — Amaka's Boutique</div>
+                        <div class="wa-title">New Order — Amaka's Boutique</div>
                         <div class="wa-from">vendly.com/amaka</div>
                         <div class="wa-line"><span>Ankara Dress × 1</span><span>₦6,500</span></div>
                         <div class="wa-line"><span>Canvas Sneakers × 2</span><span>₦7,600</span></div>
@@ -1094,6 +1098,7 @@
 
     <div class="cta-form fade-up delay-2">
         <input type="email" class="cta-input" placeholder="Enter your email address" id="emailInput">
+        <!-- CHANGE 4: button now goes to signup page after validation -->
         <button class="btn btn-primary btn-large" id="signupBtn" onclick="handleSignup()">Get started free</button>
     </div>
     <p class="cta-note">Free forever for up to 20 products. No card required.</p>
@@ -1107,7 +1112,8 @@
         <li><a href="#why">Why Vendly</a></li>
         <li><a href="#">Privacy</a></li>
         <li><a href="#">Terms</a></li>
-        <li><a href="#">Contact</a></li>
+        <!-- CHANGE 5: added login link in footer -->
+        <li><a href="#" data-nav="login">Log in</a></li>
     </ul>
     <div class="footer-copy">© 2026 Vendly</div>
 </footer>
@@ -1124,7 +1130,7 @@
 
     document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
-    // Signup handler
+    // CHANGE 4: signup handler now redirects to signup page
     function handleSignup() {
         const input = document.getElementById('emailInput');
         const btn = document.getElementById('signupBtn');
@@ -1140,11 +1146,8 @@
             return;
         }
 
-        btn.textContent = '✓ You\'re on the list!';
-        btn.style.background = '#15803d';
-        btn.disabled = true;
-        input.disabled = true;
-        input.style.opacity = '0.5';
+        // Valid email — go to signup page
+        VendlyNav.go('signup');
     }
 
     // Smooth scroll for anchor links

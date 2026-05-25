@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amaka's Boutique — Shop on Vendly</title>
+  <script src="vendly-nav.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #16a34a; --green-light: #dcfce7; --green-dark: #15803d;
+      --green-pale: #f0fdf4; --black: #0f1a0f; --grey-dark: #374151;
+      --grey-mid: #6b7280; --grey-light: #e5e7eb; --grey-pale: #f9fafb;
+      --white: #ffffff;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Outfit', sans-serif; color: var(--black); background: var(--grey-pale); min-height: 100vh; padding-bottom: 100px; }
+
+    .store-header { background: var(--white); border-bottom: 1px solid var(--grey-light); position: sticky; top: 0; z-index: 100; transition: box-shadow 0.25s; }
+    .store-header.scrolled { box-shadow: 0 2px 16px rgba(15,26,15,0.08); }
+    .header-stripe { height: 4px; background: linear-gradient(90deg, var(--green) 0%, #4ade80 60%, #86efac 100%); }
+    .header-inner { max-width: 1100px; margin: 0 auto; padding: 20px 20px 22px; display: flex; align-items: center; gap: 16px; }
+    .store-avatar { width: 52px; height: 52px; background: linear-gradient(135deg, #4ade80, var(--green)); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: 'Instrument Serif', serif; font-size: 24px; color: var(--white); flex-shrink: 0; box-shadow: 0 4px 12px rgba(22,163,74,0.25); }
+    .store-meta { flex: 1; min-width: 0; }
+    .store-name { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--black); letter-spacing: -0.3px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .store-tagline { font-size: 13px; color: var(--grey-mid); font-weight: 400; margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+    .store-tagline-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+    .header-badge { display: flex; align-items: center; gap: 6px; background: var(--green-pale); color: var(--green-dark); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 100px; white-space: nowrap; border: 1px solid var(--green-light); flex-shrink: 0; }
+    @media (max-width: 480px) { .header-badge { display: none; } }
+
+    .store-hero { background: linear-gradient(160deg, var(--green-pale) 0%, var(--white) 70%); padding: 28px 20px 24px; border-bottom: 1px solid var(--grey-light); position: relative; overflow: hidden; }
+    .store-hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; border-radius: 50%; background: rgba(22,163,74,0.06); }
+    .store-hero::after { content: ''; position: absolute; bottom: -40px; right: 60px; width: 120px; height: 120px; border-radius: 50%; background: rgba(22,163,74,0.04); }
+    .hero-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+    .hero-greeting { font-size: 12px; font-weight: 600; color: var(--green); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 6px; }
+    .hero-title { font-family: 'Instrument Serif', serif; font-size: clamp(26px, 5vw, 38px); color: var(--black); line-height: 1.2; letter-spacing: -0.5px; margin-bottom: 8px; }
+    .hero-title em { font-style: italic; color: var(--green); }
+    .hero-desc { font-size: 14px; color: var(--grey-mid); font-weight: 400; line-height: 1.6; max-width: 480px; }
+    .hero-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .hero-pill { display: flex; align-items: center; gap: 6px; background: var(--white); border: 1px solid var(--grey-light); color: var(--grey-dark); font-size: 12px; font-weight: 500; padding: 5px 11px; border-radius: 100px; }
+    .hero-pill svg { color: var(--green); }
+
+    .products-section { max-width: 1100px; margin: 0 auto; padding: 28px 16px 20px; }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--grey-light); }
+    .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    @media (min-width: 600px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 900px) { .product-grid { grid-template-columns: repeat(4, 1fr); gap: 18px; } }
+
+    .product-card { background: var(--white); border: 1.5px solid var(--grey-light); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease; animation: cardIn 0.4s ease both; cursor: default; }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(15,26,15,0.1); }
+    .product-card.in-cart { border-color: var(--green-light); box-shadow: 0 0 0 1px var(--green-light); }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .product-card:nth-child(1) { animation-delay: 0.05s; } .product-card:nth-child(2) { animation-delay: 0.10s; }
+    .product-card:nth-child(3) { animation-delay: 0.15s; } .product-card:nth-child(4) { animation-delay: 0.20s; }
+    .product-card:nth-child(5) { animation-delay: 0.25s; } .product-card:nth-child(6) { animation-delay: 0.30s; }
+
+    .card-image { width: 100%; aspect-ratio: 1/1; background: var(--grey-pale); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+    .card-image svg { width: 48px; height: 48px; color: var(--grey-light); transition: transform 0.3s ease; }
+    .product-card:hover .card-image svg { transform: scale(1.08); }
+    .product-card.in-cart .card-image { background: var(--green-pale); }
+    .product-card.in-cart .card-image svg { color: var(--green-light); }
+    .card-badge { position: absolute; top: 8px; right: 8px; background: var(--green); color: var(--white); font-size: 11px; font-weight: 700; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0.6); transition: opacity 0.2s, transform 0.2s; }
+    .product-card.in-cart .card-badge { opacity: 1; transform: scale(1); }
+    .card-body { padding: 12px 13px 14px; display: flex; flex-direction: column; flex: 1; gap: 10px; }
+    .card-name { font-size: 14px; font-weight: 600; color: var(--black); line-height: 1.35; }
+    .card-price { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--green); font-weight: 400; line-height: 1; }
+    .card-action { margin-top: auto; }
+    .btn-add { width: 100%; height: 40px; background: var(--green-pale); color: var(--green-dark); border: 1.5px solid var(--green-light); border-radius: 9px; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.18s, color 0.18s, border-color 0.18s, transform 0.1s; }
+    .btn-add:hover { background: var(--green); color: var(--white); border-color: var(--green); }
+    .btn-add:active { transform: scale(0.97); }
+    .qty-stepper { width: 100%; height: 40px; display: none; align-items: center; justify-content: space-between; background: var(--green-pale); border: 1.5px solid var(--green-light); border-radius: 9px; overflow: hidden; }
+    .product-card.in-cart .btn-add { display: none; }
+    .product-card.in-cart .qty-stepper { display: flex; }
+    .qty-btn { width: 40px; height: 100%; display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; color: var(--green-dark); transition: background 0.15s; flex-shrink: 0; }
+    .qty-btn:hover { background: rgba(22,163,74,0.12); }
+    .qty-count { font-size: 15px; font-weight: 700; color: var(--green-dark); min-width: 24px; text-align: center; }
+
+    .order-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; padding: 12px 16px; background: var(--white); border-top: 1px solid var(--grey-light); box-shadow: 0 -8px 32px rgba(15,26,15,0.1); transform: translateY(110%); transition: transform 0.35s cubic-bezier(0.34, 1.36, 0.64, 1); }
+    .order-bar.visible { transform: translateY(0); }
+    .order-bar-inner { max-width: 600px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+    .order-summary { flex: 1; min-width: 0; }
+    .order-count { font-size: 12px; font-weight: 500; color: var(--grey-mid); line-height: 1; margin-bottom: 3px; }
+    .order-count strong { color: var(--black); font-weight: 700; }
+    .order-total { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--black); letter-spacing: -0.3px; line-height: 1; }
+    .order-total span { color: var(--green); }
+    .btn-whatsapp { display: flex; align-items: center; gap: 9px; background: #25d366; color: var(--white); border: none; border-radius: 12px; padding: 0 20px; height: 52px; font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none; white-space: nowrap; transition: background 0.18s, transform 0.15s, box-shadow 0.18s; box-shadow: 0 4px 16px rgba(37,211,102,0.35); flex-shrink: 0; }
+    .btn-whatsapp:hover { background: #1db954; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,211,102,0.4); }
+    .btn-whatsapp:active { transform: scale(0.97); }
+    @media (max-width: 380px) { .btn-whatsapp-label { display: none; } }
+
+    .toast-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+    .toast { background: var(--black); color: var(--white); font-size: 13px; font-weight: 500; padding: 10px 18px; border-radius: 100px; display: flex; align-items: center; gap: 7px; white-space: nowrap; animation: toastIn 0.3s cubic-bezier(0.34,1.36,0.64,1) both; }
+    .toast.removing { animation: toastOut 0.25s ease both; }
+    .toast .toast-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; flex-shrink: 0; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(-10px) scale(0.92); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes toastOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.9); } }
+
+    .store-footer { text-align: center; padding: 28px 20px 16px; border-top: 1px solid var(--grey-light); margin-top: 12px; }
+    .store-footer a { text-decoration: none; display: inline-flex; align-items: center; gap: 6px; color: var(--grey-mid); font-size: 13px; font-weight: 500; transition: color 0.18s; cursor: pointer; }
+    .store-footer a:hover { color: var(--green); }
+    .footer-logo-mark { width: 22px; height: 22px; background: var(--green); border-radius: 5px; display: flex; align-items: center; justify-content: center; color: white; }
+    .footer-vendly { font-family: 'Instrument Serif', serif; }
+  </style>
+</head>
+<body>
+
+<header class="store-header" id="store-header">
+  <div class="header-stripe"></div>
+  <div class="header-inner">
+    <div class="store-avatar">A</div>
+    <div class="store-meta">
+      <div class="store-name">Amaka's Boutique</div>
+      <div class="store-tagline">
+        <div class="store-tagline-dot"></div>
+        Fashion &amp; Accessories · Lagos
+      </div>
+    </div>
+    <div class="header-badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.73 16"/>
+      </svg>
+      Order via WhatsApp
+    </div>
+  </div>
+</header>
+
+<section class="store-hero">
+  <div class="hero-inner">
+    <div class="hero-greeting">Vendly Store</div>
+    <h1 class="hero-title">Shop <em>Amaka's</em><br/>Collection</h1>
+    <p class="hero-desc">Pick your favourites, tap Order on WhatsApp — and we'll sort out delivery. Payment on delivery or transfer, your choice.</p>
+    <div class="hero-pills">
+      <div class="hero-pill">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Fast delivery
+      </div>
+      <div class="hero-pill">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Pay on delivery
+      </div>
+      <div class="hero-pill">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Genuine items
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="products-section">
+  <div class="section-label">All Products</div>
+  <div class="product-grid" id="product-grid"></div>
+</section>
+
+<!-- CHANGE: href="/" replaced with data-nav="landing" so VendlyNav handles it -->
+<footer class="store-footer">
+  <a href="#" data-nav="landing">
+    <div class="footer-logo-mark">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+    </div>
+    <span>Powered by <span class="footer-vendly">Vendly</span> · Create your free store</span>
+  </a>
+</footer>
+
+<div class="order-bar" id="order-bar">
+  <div class="order-bar-inner">
+    <div class="order-summary">
+      <div class="order-count"><strong id="bar-item-count">0 items</strong> in your order</div>
+      <div class="order-total">Total: <span id="bar-total">₦0</span></div>
+    </div>
+    <a class="btn-whatsapp" id="whatsapp-btn" href="#" target="_blank" rel="noopener">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+      </svg>
+      <span class="btn-whatsapp-label">Order on WhatsApp</span>
+    </a>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+  const STORE = { name: "Amaka's Boutique", slug: "amaka", phone: "2348012345678" };
+
+  const PRODUCTS = [
+    { id: 1, name: "Ankara Dress",    price: 6500, icon: "dress"   },
+    { id: 2, name: "Canvas Sneakers", price: 3800, icon: "shoe"    },
+    { id: 3, name: "Mini Handbag",    price: 4200, icon: "bag"     },
+    { id: 4, name: "Gold Necklace",   price: 2100, icon: "jewelry" },
+    { id: 5, name: "Floral Blouse",   price: 5100, icon: "shirt"   },
+    { id: 6, name: "Leather Belt",    price: 1800, icon: "belt"    },
+  ];
+
+  const ICONS = {
+    dress: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8h16M20 8l-8 16h8v28h24V24h8L40 8"/><path d="M24 8c0 4.4-4 8-8 8M40 8c0 4.4 4 8 8 8"/></svg>`,
+    shoe:  `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 38c0-2 1-14 10-20l6 4 8-4c6 2 14 8 16 14v2H8z"/><path d="M8 38v4a2 2 0 0 0 2 2h44a2 2 0 0 0 2-2v-4"/><path d="M22 22l2 8M30 18l1 9"/></svg>`,
+    bag:   `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="22" width="44" height="32" rx="4"/><path d="M22 22v-4a10 10 0 0 1 20 0v4"/><path d="M10 36h44"/><circle cx="32" cy="36" r="3"/></svg>`,
+    jewelry:`<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="42" r="10"/><path d="M22 42a10 10 0 0 1 20 0"/><path d="M14 18h36l-6 16H20L14 18z"/><path d="M20 18l12 16M44 18L32 34"/><path d="M14 18l-4-6h44l-4 6"/></svg>`,
+    shirt: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 8h24M20 8l-12 12 8 4 4-4v32h24V20l4 4 8-4L44 8"/><path d="M20 8c0 6.6 5.4 12 12 12s12-5.4 12-12"/></svg>`,
+    belt:  `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="24" width="52" height="16" rx="3"/><rect x="24" y="28" width="10" height="8" rx="1"/><line x1="32" y1="28" x2="32" y2="36"/><circle cx="29" cy="32" r="1.5" fill="currentColor"/><path d="M6 32h18M42 32h16"/></svg>`,
+  };
+
+  const cart = {};
+  const cartTotal = () => PRODUCTS.reduce((s, p) => s + (cart[p.id] || 0) * p.price, 0);
+  const cartCount = () => Object.values(cart).reduce((a, b) => a + b, 0);
+  const fmt = n => '₦' + n.toLocaleString('en-NG');
+
+  function renderGrid() {
+    const grid = document.getElementById('product-grid');
+    grid.innerHTML = '';
+    PRODUCTS.forEach(p => {
+      const qty = cart[p.id] || 0;
+      const card = document.createElement('div');
+      card.className = 'product-card' + (qty > 0 ? ' in-cart' : '');
+      card.dataset.id = p.id;
+      card.innerHTML = `
+        <div class="card-image">
+          ${ICONS[p.icon] || ICONS.bag}
+          <div class="card-badge">${qty}</div>
+        </div>
+        <div class="card-body">
+          <div class="card-name">${p.name}</div>
+          <div class="card-price">${fmt(p.price)}</div>
+          <div class="card-action">
+            <button class="btn-add" data-id="${p.id}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add to Order
+            </button>
+            <div class="qty-stepper" data-id="${p.id}">
+              <button class="qty-btn qty-minus" data-id="${p.id}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+              <span class="qty-count">${qty}</span>
+              <button class="qty-btn qty-plus" data-id="${p.id}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>`;
+      grid.appendChild(card);
+    });
+    document.getElementById('product-grid').addEventListener('click', handleClick);
+  }
+
+  function handleClick(e) {
+    const add   = e.target.closest('.btn-add');
+    const minus = e.target.closest('.qty-minus');
+    const plus  = e.target.closest('.qty-plus');
+    if (add)   { const id = +add.dataset.id;   cart[id] = 1; showToast('Added — ' + PRODUCTS.find(p=>p.id===id).name); updateCard(id); updateBar(); }
+    if (minus) { const id = +minus.dataset.id; cart[id] > 1 ? cart[id]-- : delete cart[id]; updateCard(id); updateBar(); }
+    if (plus)  { const id = +plus.dataset.id;  cart[id] = (cart[id]||0)+1; updateCard(id); updateBar(); }
+  }
+
+  function updateCard(id) {
+    const card = document.querySelector(`.product-card[data-id="${id}"]`);
+    if (!card) return;
+    const qty = cart[id] || 0;
+    card.classList.toggle('in-cart', qty > 0);
+    card.querySelector('.card-badge').textContent = qty;
+    card.querySelector('.qty-count').textContent = qty;
+  }
+
+  function updateBar() {
+    const count = cartCount();
+    document.getElementById('bar-item-count').textContent = count === 1 ? '1 item' : `${count} items`;
+    document.getElementById('bar-total').textContent = fmt(cartTotal());
+    document.getElementById('order-bar').classList.toggle('visible', count > 0);
+    document.body.style.paddingBottom = count > 0 ? '104px' : '100px';
+    document.getElementById('whatsapp-btn').href = buildWALink();
+  }
+
+  function buildWALink() {
+    const lines = [`🛍️ New Order — ${STORE.name}`, `vendly.com/${STORE.slug}`, ''];
+    PRODUCTS.forEach(p => { if (cart[p.id]) lines.push(`${p.name} × ${cart[p.id]} — ${fmt(p.price * cart[p.id])}`); });
+    lines.push('', `Total: ${fmt(cartTotal())}`);
+    return `https://wa.me/${STORE.phone}?text=${encodeURIComponent(lines.join('\n'))}`;
+  }
+
+  function showToast(msg) {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML = `<div class="toast-dot"></div><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => { t.classList.add('removing'); t.addEventListener('animationend', () => t.remove()); }, 2200);
+  }
+
+  window.addEventListener('scroll', () => {
+    document.getElementById('store-header').classList.toggle('scrolled', window.scrollY > 10);
+  }, { passive: true });
+
+  renderGrid();
+  updateBar();
+</script>
+</body>
+</html>
