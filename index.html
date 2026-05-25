@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -928,7 +929,12 @@
 
     <div class="hero-visual">
         <div class="float-card float-card-1">
-            <div class="float-icon" style="background:#dcfce7;">📦</div>
+            <div class="float-icon icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73L12 2 4 6.27A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73L12 22l8-4.27A2 2 0 0 0 21 16z"/>
+                    <path d="M7.5 4.21 12 6.69 16.5 4.21"/>
+                </svg>
+            </div>
             <div>
                 <div class="float-label">New order received</div>
                 <div class="float-value">₦18,300</div>
@@ -942,11 +948,22 @@
                     <div class="store-header-name">Amaka's Boutique</div>
                     <div class="store-header-tag">vendly.com/amaka</div>
                 </div>
-                <div class="store-search">🔍 Search products...</div>
+                <div class="store-search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="7" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <span>Search products…</span>
+                </div>
                 <div class="store-section-title">Featured Items</div>
                 <div class="product-grid">
                     <div class="product-card">
-                        <div class="product-img p1">👗</div>
+                        <div class="product-img p1">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M7 3h10l-2 6v12h-6V9L7 3z" />
+                                <path d="M7 3l5 4 5-4" />
+                            </svg>
+                        </div>
                         <div class="product-info">
                             <div class="product-name">Ankara Dress</div>
                             <div class="product-price">₦6,500</div>
@@ -954,7 +971,12 @@
                         <button class="add-btn">+ Add to order</button>
                     </div>
                     <div class="product-card">
-                        <div class="product-img p2">👟</div>
+                        <div class="product-img p2">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 16h20l-3 4H6l-4-4z" />
+                                <path d="M6 16l2-6 3 1 3-1 3 6" />
+                            </svg>
+                        </div>
                         <div class="product-info">
                             <div class="product-name">Canvas Sneakers</div>
                             <div class="product-price">₦3,800</div>
@@ -962,7 +984,12 @@
                         <button class="add-btn">+ Add to order</button>
                     </div>
                     <div class="product-card">
-                        <div class="product-img p3">👜</div>
+                        <div class="product-img p3">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 7h12l1 13H5L6 7z" />
+                                <path d="M9 7V5a3 3 0 0 1 6 0v2" />
+                            </svg>
+                        </div>
                         <div class="product-info">
                             <div class="product-name">Mini Handbag</div>
                             <div class="product-price">₦4,200</div>
@@ -970,7 +997,12 @@
                         <button class="add-btn">+ Add to order</button>
                     </div>
                     <div class="product-card">
-                        <div class="product-img p4">💍</div>
+                        <div class="product-img p4">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22l7-13L12 2 5 9l7 13z" />
+                                <path d="M9 9h6" />
+                            </svg>
+                        </div>
                         <div class="product-info">
                             <div class="product-name">Gold Necklace</div>
                             <div class="product-price">₦2,100</div>
@@ -983,13 +1015,23 @@
                         <div class="order-bar-count">3 items · ₦14,500</div>
                         <div class="order-bar-sub">Tap to send via WhatsApp</div>
                     </div>
-                    <button class="whatsapp-btn">💬 Order now</button>
+                    <button class="whatsapp-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-4.2-1.1L3 21l1.1-5.4A8.38 8.38 0 0 1 3 11.5 8.5 8.5 0 0 1 11.5 3 8.5 8.5 0 0 1 20 11.5z" />
+                            <path d="M17 11.5a5 5 0 0 1-8.6 3.6L7 13" />
+                        </svg>
+                        Order now
+                    </button>
                 </div>
             </div>
         </div>
 
         <div class="float-card float-card-2">
-            <div class="float-icon" style="background:#dcf8c6;">✓</div>
+            <div class="float-icon icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6 9 17l-5-5" />
+                </svg>
+            </div>
             <div>
                 <div class="float-label">Order sent via</div>
                 <div class="float-value">WhatsApp</div>
@@ -1007,7 +1049,10 @@
     <div class="steps-grid">
         <div class="step-card fade-up">
             <div class="step-number">
-                🏪
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9h18v10H3z" />
+                    <path d="M5 9V5h14v4" />
+                </svg>
                 <div class="step-num-badge">1</div>
             </div>
             <div class="step-title">Create your store</div>
@@ -1015,7 +1060,11 @@
         </div>
         <div class="step-card fade-up delay-1">
             <div class="step-number">
-                📦
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 8 12 2l9 6v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8z" />
+                    <path d="M3 8h18" />
+                    <path d="M12 2v20" />
+                </svg>
                 <div class="step-num-badge">2</div>
             </div>
             <div class="step-title">Add your products</div>
@@ -1023,7 +1072,9 @@
         </div>
         <div class="step-card fade-up delay-2">
             <div class="step-number">
-                💬
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
                 <div class="step-num-badge">3</div>
             </div>
             <div class="step-title">Share and receive orders</div>
@@ -1042,7 +1093,12 @@
 
         <div class="feature-card dark fade-up">
             <div>
-                <div class="feature-icon">💬</div>
+                <div class="feature-icon icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    <path d="M17 7h-6" />
+                </svg>
+            </div>
                 <div class="feature-title">WhatsApp-native ordering</div>
                 <p class="feature-desc">When a customer taps Order, they get a pre-filled WhatsApp message with every item they picked, quantities, and the total. You see exactly what they want. No confusion, no back-and-forth about "oya send me the list."</p>
                 <div class="feature-pill">Works with any WhatsApp number</div>
@@ -1056,14 +1112,18 @@
                         <div class="wa-line"><span>Canvas Sneakers × 2</span><span>₦7,600</span></div>
                         <div class="wa-line"><span>Mini Handbag × 1</span><span>₦4,200</span></div>
                         <div class="wa-total"><span>Total</span><span>₦18,300</span></div>
-                        <div class="wa-time">12:34 PM ✓✓</div>
+                        <div class="wa-time">12:34 PM · Delivered</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="feature-card fade-up">
-            <div class="feature-icon">⚡</div>
+            <div class="feature-icon icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg>
+            </div>
             <div class="feature-title">Easy to start</div>
             <p class="feature-desc">Get your store live and start receiving orders. No stress and easy to use.</p>
         </div>

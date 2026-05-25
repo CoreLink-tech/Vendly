@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -778,6 +779,8 @@
   function handleLogin() {
     if (!validate()) return;
 
+    const email = document.getElementById('email').value.trim();
+
     loginBtn.classList.add('loading');
     loginBtn.disabled = true;
 
@@ -785,6 +788,7 @@
       loginBtn.classList.remove('loading');
       loginBtn.disabled = false;
 
+      VendlyAuth.setUser({ email });
       showToast('Login successful — redirecting…');
       setTimeout(() => {
         VendlyNav.go('dashboard');

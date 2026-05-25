@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -277,7 +278,7 @@
   }
 
   function buildWALink() {
-    const lines = [`🛍️ New Order — ${STORE.name}`, `vendly.com/${STORE.slug}`, ''];
+    const lines = [`New order — ${STORE.name}`, `vendly.com/${STORE.slug}`, ''];
     PRODUCTS.forEach(p => { if (cart[p.id]) lines.push(`${p.name} × ${cart[p.id]} — ${fmt(p.price * cart[p.id])}`); });
     lines.push('', `Total: ${fmt(cartTotal())}`);
     return `https://wa.me/${STORE.phone}?text=${encodeURIComponent(lines.join('\n'))}`;

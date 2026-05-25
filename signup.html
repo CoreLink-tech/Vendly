@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1187,6 +1188,14 @@
         setTimeout(() => {
             btn.classList.remove('loading');
             btn.disabled = false;
+
+            VendlyAuth.setUser({
+                firstName,
+                lastName,
+                email,
+                storeName,
+                slug,
+            });
 
             document.getElementById('successSlug').textContent = slug;
             document.getElementById('formView').style.display = 'none';
