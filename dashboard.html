@@ -1241,24 +1241,76 @@
         if (text) text.style.display = '';
     }
 
+    async function convertImageFileToWebP(file, maxSizeKB = 200) {
+        const loadImage = () => new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = URL.createObjectURL(file);
+        });
+
+        const image = await loadImage();
+        let width = image.naturalWidth;
+        let height = image.naturalHeight;
+        const maxDimension = 1200;
+        if (width > maxDimension || height > maxDimension) {
+            const ratio = Math.min(maxDimension / width, maxDimension / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0, width, height);
+
+        const targetBytes = maxSizeKB * 1024;
+        const qualitySteps = [0.85, 0.7, 0.55, 0.4, 0.25];
+        const toBlob = q => new Promise(resolve => canvas.toBlob(resolve, 'image/webp', q));
+
+        let blob = await toBlob(qualitySteps[0]);
+        for (let i = 1; i < qualitySteps.length && blob && blob.size > targetBytes; i++) {
+            blob = await toBlob(qualitySteps[i]);
+        }
+
+        if (!blob) throw new Error('Unable to convert image');
+
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
+
     // IMAGE UPLOAD
-    function handleImageUpload(e) {
+    async function handleImageUpload(e) {
         const file = e.target.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            uploadedImage = ev.target.result;
-            const zone = document.getElementById('uploadZone');
-            zone.classList.add('has-image');
-            const existing = zone.querySelector('img');
-            if (existing) existing.remove();
-            const img = document.createElement('img');
-            img.src = uploadedImage;
-            zone.prepend(img);
-            zone.querySelector('svg').style.display = 'none';
-            zone.querySelector('.upload-text').style.display = 'none';
-        };
-        reader.readAsDataURL(file);
+
+        const zone = document.getElementById('uploadZone');
+        zone.classList.add('has-image');
+        const existing = zone.querySelector('img');
+        if (existing) existing.remove();
+
+        try {
+            uploadedImage = await convertImageFileToWebP(file, 200);
+        } catch (err) {
+            console.warn('WebP conversion failed, falling back to original image', err);
+            const reader = new FileReader();
+            uploadedImage = await new Promise((resolve, reject) => {
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        const img = document.createElement('img');
+        img.src = uploadedImage;
+        zone.prepend(img);
+        zone.querySelector('svg').style.display = 'none';
+        zone.querySelector('.upload-text').style.display = 'none';
     }
 
     // ADD PRODUCT
@@ -1287,7 +1339,7 @@
         try {
             if (window.supabase && VendlyAuth.getUser() && VendlyAuth.getUser().id) {
                 const owner_id = VendlyAuth.getUser().id;
-                const { data, error } = await window.supabase.from('products').insert([{ name, desc, price: Number(price), image: uploadedImage, status: 'live', owner_id }]);
+                const { data, error } = await window.supabase.from('products').insert([{ name, desc, price: Number(price), image_url: uploadedImage, status: 'live', owner_id }]);
                 if (error) throw error;
                 await loadProducts();
                 closeAddForm();
@@ -1305,6 +1357,7 @@
             desc,
             price: Number(price),
             image: uploadedImage,
+            image_url: uploadedImage,
             status: 'live'
         };
 
@@ -1355,8 +1408,8 @@
         grid.innerHTML = products.map(p => `
             <div class="product-card" id="card-${p.id}">
                 <div class="product-thumb">
-                    ${p.image
-                        ? `<img src="${p.image}" alt="${p.name}">`
+                    ${p.image || p.image_url
+                        ? `<img src="${p.image || p.image_url}" alt="${p.name}">`
                         : `<div class="product-thumb-placeholder">
                             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="3" y="3" width="18" height="18" rx="2"/>
