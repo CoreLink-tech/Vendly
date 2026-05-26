@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendly — Activate Your Store</title>
+    <script src="vendly-nav.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --green: #16a34a;
+            --green-light: #dcfce7;
+            --green-dark: #15803d;
+            --green-pale: #f0fdf4;
+            --black: #0f1a0f;
+            --grey-dark: #374151;
+            --grey-mid: #6b7280;
+            --grey-light: #e5e7eb;
+            --grey-pale: #f9fafb;
+            --white: #ffffff;
+            --red: #ef4444;
+            --amber: #f59e0b;
+            --amber-pale: #fffbeb;
+            --amber-light: #fde68a;
+            --font-display: 'Instrument Serif', Georgia, serif;
+            --font-body: 'Outfit', sans-serif;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--grey-pale);
+            color: var(--black);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(22,163,74,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(22,163,74,0.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: -200px; left: 50%;
+            transform: translateX(-50%);
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(245,158,11,0.07) 0%, transparent 65%);
+            pointer-events: none;
+        }
+
+        /* TRIAL EXPIRED BANNER */
+        .trial-banner {
+            width: 100%;
+            max-width: 520px;
+            background: linear-gradient(135deg, #92400e, #78350f);
+            border-radius: 14px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            margin-bottom: 16px;
+            animation: slideDown 0.5s ease both;
+            position: relative;
+            z-index: 1;
+        }
+
+        .banner-icon {
+            width: 38px; height: 38px;
+            background: rgba(245,158,11,0.2);
+            border: 1px solid rgba(245,158,11,0.35);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--amber-light);
+            flex-shrink: 0;
+        }
+
+        .banner-text {
+            flex: 1;
+        }
+
+        .banner-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--amber-light);
+            margin-bottom: 2px;
+        }
+
+        .banner-sub {
+            font-size: 0.72rem;
+            color: rgba(253,230,138,0.6);
+            font-weight: 300;
+        }
+
+        .banner-days {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            color: var(--amber-light);
+            font-weight: 400;
+            flex-shrink: 0;
+        }
+
+        /* MAIN CARD */
+        .activate-card {
+            background: var(--white);
+            border: 1.5px solid var(--grey-light);
+            border-radius: 22px;
+            width: 100%;
+            max-width: 520px;
+            overflow: hidden;
+            box-shadow: 0 20px 64px rgba(0,0,0,0.07);
+            position: relative;
+            z-index: 1;
+            animation: cardIn 0.55s cubic-bezier(0.34, 1.2, 0.64, 1) 0.1s both;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* CARD HEADER */
+        .card-top {
+            background: var(--black);
+            padding: 32px 36px 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-top::before {
+            content: '';
+            position: absolute;
+            top: -80px; right: -80px;
+            width: 240px; height: 240px;
+            background: radial-gradient(circle, rgba(245,158,11,0.15) 0%, transparent 65%);
+        }
+
+        .top-logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--white);
+            letter-spacing: -0.02em;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+            cursor: pointer;
+        }
+
+        .top-logo span { color: #86efac; }
+
+        .top-title {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            color: var(--white);
+            letter-spacing: -0.02em;
+            margin-bottom: 7px;
+            position: relative;
+            z-index: 1;
+            line-height: 1.15;
+        }
+
+        .top-title em { font-style: italic; color: var(--amber-light); }
+
+        .top-sub {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.4);
+            font-weight: 300;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* PRICE STRIP */
+        .price-strip {
+            background: var(--amber-pale);
+            border-top: 1px solid var(--amber-light);
+            border-bottom: 1px solid var(--amber-light);
+            padding: 16px 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .price-left { display: flex; align-items: center; gap: 12px; }
+
+        .price-icon {
+            width: 40px; height: 40px;
+            background: white;
+            border: 1.5px solid var(--amber-light);
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--amber);
+        }
+
+        .price-label {
+            font-size: 0.72rem;
+            color: #92400e;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .price-amount {
+            font-family: var(--font-display);
+            font-size: 1.55rem;
+            color: #78350f;
+            letter-spacing: -0.02em;
+            line-height: 1;
+        }
+
+        .price-note {
+            font-size: 0.7rem;
+            color: #92400e;
+            font-weight: 500;
+            text-align: right;
+            line-height: 1.5;
+        }
+
+        /* BODY */
+        .card-body {
+            padding: 28px 36px 36px;
+        }
+
+        /* WHAT YOU GET */
+        .perks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .perk-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        .perk-item:nth-child(1) { animation-delay: 0.2s; }
+        .perk-item:nth-child(2) { animation-delay: 0.28s; }
+        .perk-item:nth-child(3) { animation-delay: 0.36s; }
+        .perk-item:nth-child(4) { animation-delay: 0.44s; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .perk-dot {
+            width: 28px; height: 28px;
+            background: var(--green-pale);
+            border: 1px solid var(--green-light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--green);
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .perk-title {
+            font-size: 0.855rem;
+            font-weight: 600;
+            color: var(--black);
+            margin-bottom: 2px;
+        }
+
+        .perk-desc {
+            font-size: 0.75rem;
+            color: var(--grey-mid);
+            font-weight: 300;
+            line-height: 1.5;
+        }
+
+        /* CODE INPUT */
+        .code-section {
+            background: var(--grey-pale);
+            border: 1.5px solid var(--grey-light);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 20px;
+            animation: fadeUp 0.4s ease 0.5s both;
+        }
+
+        .code-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--grey-dark);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .code-label-tag {
+            font-size: 0.65rem;
+            font-weight: 600;
+            background: var(--green-light);
+            color: var(--green-dark);
+            padding: 2px 8px;
+            border-radius: 100px;
+        }
+
+        .code-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .code-input {
+            flex: 1;
+            padding: 11px 14px;
+            border: 1.5px solid var(--grey-light);
+            border-radius: 9px;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--black);
+            background: var(--white);
+            outline: none;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .code-input:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(22,163,74,0.09);
+        }
+
+        .code-input.error { border-color: var(--red); box-shadow: 0 0 0 3px rgba(239,68,68,0.09); }
+        .code-input.success { border-color: var(--green); box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+
+        .code-input::placeholder { letter-spacing: 0; font-weight: 400; color: #c4c9d4; }
+
+        .code-submit {
+            padding: 11px 18px;
+            background: var(--green);
+            color: white;
+            border: none;
+            border-radius: 9px;
+            font-family: var(--font-body);
+            font-size: 0.855rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .code-submit:hover { background: var(--green-dark); }
+
+        .code-hint {
+            font-size: 0.7rem;
+            color: var(--grey-mid);
+            margin-top: 8px;
+        }
+
+        /* WHATSAPP BUTTON */
+        .wa-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 11px;
+            width: 100%;
+            padding: 15px;
+            background: #25d366;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.22s;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 16px rgba(37,211,102,0.3);
+            animation: fadeUp 0.4s ease 0.55s both;
+        }
+
+        .wa-btn:hover {
+            background: #1db954;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(37,211,102,0.4);
+        }
+
+        .wa-btn:active { transform: scale(0.98); }
+
+        .wa-btn-sub {
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--grey-mid);
+            animation: fadeUp 0.4s ease 0.6s both;
+        }
+
+        .wa-btn-sub a {
+            color: var(--green-dark);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        /* SUCCESS STATE */
+        .success-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .success-screen.show { display: flex; }
+
+        .success-icon {
+            width: 68px; height: 68px;
+            background: var(--green-pale);
+            border: 2px solid var(--green-light);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            color: var(--green);
+            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .success-title {
+            font-family: var(--font-display);
+            font-size: 1.65rem;
+            color: var(--black);
+            margin-bottom: 8px;
+        }
+
+        .success-sub {
+            font-size: 0.875rem;
+            color: var(--grey-mid);
+            line-height: 1.7;
+            margin-bottom: 24px;
+            max-width: 300px;
+        }
+
+        .goto-btn {
+            width: 100%;
+            padding: 13px;
+            background: var(--black);
+            color: white;
+            border: none;
+            border-radius: 9px;
+            font-family: var(--font-body);
+            font-size: 0.925rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .goto-btn:hover { background: var(--grey-dark); }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 24px; right: 24px;
+            background: var(--black);
+            color: var(--white);
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 0.835rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            box-shadow: 0 10px 32px rgba(0,0,0,0.2);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 999;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success svg { color: #86efac; }
+        .toast.error svg { color: #fca5a5; }
+
+        @media (max-width: 560px) {
+            .card-top { padding: 24px 22px 20px; }
+            .price-strip { padding: 14px 22px; }
+            .card-body { padding: 22px 22px 28px; }
+            .code-row { flex-direction: column; }
+            .code-submit { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TRIAL EXPIRED BANNER -->
+    <div class="trial-banner">
+        <div class="banner-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+        </div>
+        <div class="banner-text">
+            <div class="banner-title">Your free trial has ended</div>
+            <div class="banner-sub">Activate your store to continue receiving orders</div>
+        </div>
+        <div class="banner-days">Day 4</div>
+    </div>
+
+    <!-- ACTIVATION CARD -->
+    <div class="activate-card">
+
+        <!-- HEADER -->
+        <div class="card-top">
+            <a class="top-logo" data-nav="landing">Vend<span>ly</span></a>
+            <div class="top-title">Activate your<br><em>store.</em></div>
+            <div class="top-sub">Your store is currently paused. Pay once and keep selling with no interruptions.</div>
+        </div>
+
+        <!-- PRICE STRIP -->
+        <div class="price-strip">
+            <div class="price-left">
+                <div class="price-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="5" width="20" height="14" rx="2"/>
+                        <line x1="2" y1="10" x2="22" y2="10"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="price-label">One-time activation fee</div>
+                    <div class="price-amount">₦4,000</div>
+                </div>
+            </div>
+            <div class="price-note">Pay via<br>WhatsApp transfer</div>
+        </div>
+
+        <!-- BODY -->
+        <div class="card-body">
+
+            <!-- FORM VIEW -->
+            <div id="formView">
+                <div class="perks-list">
+                    <div class="perk-item">
+                        <div class="perk-dot">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div>
+                            <div class="perk-title">Full storefront access — forever</div>
+                            <div class="perk-desc">Your store stays live and customers can keep ordering from your link.</div>
+                        </div>
+                    </div>
+                    <div class="perk-item">
+                        <div class="perk-dot">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div>
+                            <div class="perk-title">Unlimited products</div>
+                            <div class="perk-desc">No product limit after activation. List everything you sell.</div>
+                        </div>
+                    </div>
+                    <div class="perk-item">
+                        <div class="perk-dot">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div>
+                            <div class="perk-title">WhatsApp orders keep coming</div>
+                            <div class="perk-desc">All orders go straight to your WhatsApp with no interruption.</div>
+                        </div>
+                    </div>
+                    <div class="perk-item">
+                        <div class="perk-dot">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div>
+                            <div class="perk-title">Referral earnings</div>
+                            <div class="perk-desc">Earn ₦1,000 for every seller you bring to Vendly.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTIVATION CODE -->
+                <div class="code-section">
+                    <div class="code-label">
+                        Already have a code?
+                        <span class="code-label-tag">Enter it here</span>
+                    </div>
+                    <div class="code-row">
+                        <input type="text" class="code-input" id="codeInput" placeholder="e.g. VDL-2026" maxlength="10">
+                        <button class="code-submit" onclick="submitCode()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            Activate
+                        </button>
+                    </div>
+                    <div class="code-hint">Activation codes are sent by Vendly after payment is confirmed.</div>
+                </div>
+
+                <!-- WHATSAPP BUTTON -->
+                <a class="wa-btn" id="waBtn" href="#" target="_blank" rel="noopener" onclick="buildWALink(event)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+                    </svg>
+                    Pay ₦4,000 via WhatsApp
+                </a>
+
+                <div class="wa-btn-sub">
+                    After payment, you'll receive an activation code. <a href="#codeInput" onclick="document.getElementById('codeInput').focus()">Enter it above.</a>
+                </div>
+            </div>
+
+            <!-- SUCCESS VIEW -->
+            <div class="success-screen" id="successScreen">
+                <div class="success-icon">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </div>
+                <div class="success-title">Store activated.</div>
+                <div class="success-sub">Your store is back live. Customers can browse and order from your link again.</div>
+                <button class="goto-btn" data-nav="dashboard">
+                    Go to dashboard
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" id="toastIcon">
+            <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span id="toastMsg">Done</span>
+    </div>
+
+<script>
+    // Get user info from auth (placeholder until Supabase)
+    const user = VendlyAuth.getUser() || { name: 'Seller', store: 'yourstore' };
+    const VENDLY_WHATSAPP = '2349168311809';
+
+    function buildWALink(e) {
+        e.preventDefault();
+        const msg = `Hello Vendly,\n\nI'd like to activate my store.\n\nStore: vendly.com/${user.store || 'yourstore'}\nName: ${user.name || 'Seller'}\n\nPlease confirm my ₦4,000 payment and send my activation code.`;
+        const url = `https://wa.me/${VENDLY_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
+    }
+
+    // Demo valid codes — in production these come from Supabase
+    const VALID_CODES = ['VDL-2026', 'VDL-TEST', 'VENDLY01'];
+
+    function submitCode() {
+        const input = document.getElementById('codeInput');
+        const code = input.value.trim().toUpperCase();
+
+        if (!code) {
+            input.classList.add('error');
+            input.focus();
+            setTimeout(() => input.classList.remove('error'), 2000);
+            showToast('Enter your activation code', 'error');
+            return;
+        }
+
+        if (code.length < 4) {
+            input.classList.add('error');
+            setTimeout(() => input.classList.remove('error'), 2000);
+            showToast('That code looks too short', 'error');
+            return;
+        }
+
+        // Simulate code check
+        if (VALID_CODES.includes(code)) {
+            input.classList.add('success');
+            showToast('Code accepted — activating your store');
+            setTimeout(() => {
+                document.getElementById('formView').style.display = 'none';
+                document.getElementById('successScreen').classList.add('show');
+                // In production: update Supabase user status to 'active'
+            }, 900);
+        } else {
+            input.classList.add('error');
+            setTimeout(() => input.classList.remove('error'), 2500);
+            showToast('Invalid code. Check and try again.', 'error');
+        }
+    }
+
+    // Enter key on code input
+    document.getElementById('codeInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') submitCode();
+    });
+
+    // Toast
+    let toastTimer;
+    function showToast(msg, type = 'success') {
+        const toast = document.getElementById('toast');
+        const icon = document.getElementById('toastIcon');
+        document.getElementById('toastMsg').textContent = msg;
+        toast.className = `toast ${type}`;
+        icon.innerHTML = type === 'error'
+            ? `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`
+            : `<polyline points="20 6 9 17 4 12"/>`;
+        clearTimeout(toastTimer);
+        requestAnimationFrame(() => toast.classList.add('show'));
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+    }
+</script>
+
+</body>
+</html>

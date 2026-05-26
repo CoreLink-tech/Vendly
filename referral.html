@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendly — Refer & Earn</title>
+    <script src="vendly-nav.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --green: #16a34a;
+            --green-light: #dcfce7;
+            --green-dark: #15803d;
+            --green-pale: #f0fdf4;
+            --black: #0f1a0f;
+            --grey-dark: #374151;
+            --grey-mid: #6b7280;
+            --grey-light: #e5e7eb;
+            --grey-pale: #f9fafb;
+            --white: #ffffff;
+            --red: #ef4444;
+            --font-display: 'Instrument Serif', Georgia, serif;
+            --font-body: 'Outfit', sans-serif;
+            --sidebar-w: 240px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--grey-pale);
+            color: var(--black);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ── SIDEBAR (reused from dashboard) ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            min-height: 100vh;
+            background: var(--white);
+            border-right: 1px solid var(--grey-light);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0;
+            z-index: 50;
+            transition: transform 0.28s;
+        }
+
+        .sidebar-logo {
+            padding: 28px 24px 24px;
+            font-family: var(--font-display);
+            font-size: 1.55rem;
+            color: var(--black);
+            letter-spacing: -0.02em;
+            text-decoration: none;
+            border-bottom: 1px solid var(--grey-light);
+            display: block;
+            cursor: pointer;
+        }
+
+        .sidebar-logo span { color: var(--green); }
+
+        .sidebar-nav {
+            padding: 16px 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--grey-mid);
+            padding: 10px 12px 6px;
+            margin-top: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--grey-dark);
+            transition: all 0.18s;
+            text-decoration: none;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover { background: var(--grey-pale); color: var(--black); }
+        .nav-item.active { background: var(--green-pale); color: var(--green-dark); font-weight: 600; }
+        .nav-item.active svg { stroke: var(--green); }
+        .nav-item svg { stroke: var(--grey-mid); flex-shrink: 0; transition: stroke 0.18s; }
+        .nav-item:hover svg { stroke: var(--black); }
+
+        .sidebar-footer {
+            padding: 16px 12px;
+            border-top: 1px solid var(--grey-light);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: background 0.18s;
+        }
+
+        .user-card:hover { background: var(--grey-pale); }
+
+        .user-avatar {
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            background: var(--green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .user-name { font-size: 0.82rem; font-weight: 600; color: var(--black); }
+        .user-store { font-size: 0.72rem; color: var(--grey-mid); margin-top: 1px; }
+
+        /* ── MAIN ── */
+        .main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            background: rgba(249,250,251,0.92);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--grey-light);
+            padding: 0 36px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 40;
+        }
+
+        .topbar-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            color: var(--black);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 7px;
+            color: var(--black);
+        }
+
+        .mobile-menu-btn:hover { background: var(--grey-light); }
+
+        .content { padding: 36px; flex: 1; }
+
+        /* ── BALANCE HERO ── */
+        .balance-hero {
+            background: var(--black);
+            border-radius: 20px;
+            padding: 32px 36px;
+            margin-bottom: 24px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .balance-hero::before {
+            content: '';
+            position: absolute;
+            top: -100px; right: -100px;
+            width: 320px; height: 320px;
+            background: radial-gradient(circle, rgba(22,163,74,0.15) 0%, transparent 65%);
+            pointer-events: none;
+        }
+
+        .balance-label {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.4);
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            position: relative; z-index: 1;
+        }
+
+        .balance-amount {
+            font-family: var(--font-display);
+            font-size: clamp(2.2rem, 5vw, 3.4rem);
+            color: var(--white);
+            letter-spacing: -0.03em;
+            line-height: 1;
+            margin-bottom: 8px;
+            position: relative; z-index: 1;
+        }
+
+        .balance-amount span { color: #86efac; }
+
+        .balance-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative; z-index: 1;
+        }
+
+        .balance-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.38);
+        }
+
+        .balance-meta-item strong { color: rgba(255,255,255,0.7); font-weight: 600; }
+
+        .withdraw-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 22px;
+            background: var(--green);
+            color: white;
+            border: none;
+            border-radius: 11px;
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            position: relative; z-index: 1;
+        }
+
+        .withdraw-btn:hover {
+            background: var(--green-dark);
+            box-shadow: 0 6px 20px rgba(22,163,74,0.3);
+            transform: translateY(-1px);
+        }
+
+        .withdraw-btn:disabled {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.3);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ── STATS ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border: 1.5px solid var(--grey-light);
+            border-radius: 14px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--green-light);
+            box-shadow: 0 4px 20px rgba(22,163,74,0.07);
+        }
+
+        .stat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .stat-label { font-size: 0.75rem; color: var(--grey-mid); font-weight: 500; }
+        .stat-icon { width: 32px; height: 32px; border-radius: 9px; background: var(--green-pale); display: flex; align-items: center; justify-content: center; }
+        .stat-value { font-family: var(--font-display); font-size: 1.75rem; color: var(--black); line-height: 1; margin-bottom: 4px; }
+        .stat-sub { font-size: 0.7rem; color: var(--grey-mid); }
+        .stat-sub strong { color: var(--green); }
+
+        /* ── REFERRAL CODE CARD ── */
+        .ref-code-card {
+            background: var(--white);
+            border: 1.5px solid var(--grey-light);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .ref-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .ref-card-title {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            color: var(--black);
+            margin-bottom: 4px;
+        }
+
+        .ref-card-sub {
+            font-size: 0.8rem;
+            color: var(--grey-mid);
+            font-weight: 300;
+            line-height: 1.55;
+        }
+
+        .earn-badge {
+            background: var(--green-pale);
+            border: 1px solid var(--green-light);
+            border-radius: 10px;
+            padding: 10px 16px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .earn-badge-amount {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            color: var(--green-dark);
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+
+        .earn-badge-label { font-size: 0.65rem; color: var(--green); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Link box */
+        .ref-link-box {
+            background: var(--grey-pale);
+            border: 1.5px solid var(--grey-light);
+            border-radius: 11px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .ref-link-text {
+            flex: 1;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--black);
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ref-link-text span { color: var(--green); }
+
+        .copy-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--black);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.18s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .copy-btn:hover { background: var(--grey-dark); }
+        .copy-btn.copied { background: var(--green); }
+
+        /* Share row */
+        .share-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .share-btn {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 14px;
+            border: 1.5px solid var(--grey-light);
+            border-radius: 8px;
+            background: var(--white);
+            font-family: var(--font-body);
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--grey-dark);
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+
+        .share-btn:hover { border-color: var(--green); color: var(--green-dark); }
+        .share-btn.whatsapp:hover { border-color: #25d366; color: #15803d; background: #f0fdf4; }
+
+        /* ── REFERRALS TABLE ── */
+        .section-card {
+            background: var(--white);
+            border: 1.5px solid var(--grey-light);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .section-card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--grey-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-card-title {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            color: var(--black);
+        }
+
+        .section-card-count {
+            font-size: 0.75rem;
+            color: var(--grey-mid);
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th {
+            padding: 11px 20px;
+            text-align: left;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: var(--grey-mid);
+            background: var(--grey-pale);
+            border-bottom: 1px solid var(--grey-light);
+        }
+
+        td {
+            padding: 14px 20px;
+            font-size: 0.855rem;
+            color: var(--grey-dark);
+            border-bottom: 1px solid var(--grey-light);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--grey-pale); }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 100px;
+        }
+
+        .badge-green { background: var(--green-light); color: var(--green-dark); }
+        .badge-grey { background: var(--grey-light); color: var(--grey-mid); }
+        .badge-amber { background: #fef3c7; color: #92400e; }
+
+        .table-empty {
+            padding: 48px 24px;
+            text-align: center;
+            color: var(--grey-mid);
+            font-size: 0.875rem;
+        }
+
+        .table-empty-icon {
+            width: 48px; height: 48px;
+            border-radius: 14px;
+            background: var(--green-pale);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            color: var(--green);
+        }
+
+        /* ── WITHDRAWAL MODAL ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.22s;
+        }
+
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+        .modal {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.2);
+            transform: scale(0.94) translateY(14px);
+            transition: transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1);
+        }
+
+        .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+
+        .modal-icon {
+            width: 48px; height: 48px;
+            background: var(--green-pale);
+            border: 1.5px solid var(--green-light);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+            color: var(--green);
+        }
+
+        .modal-title { font-family: var(--font-display); font-size: 1.25rem; color: var(--black); margin-bottom: 6px; }
+        .modal-sub { font-size: 0.835rem; color: var(--grey-mid); line-height: 1.65; margin-bottom: 24px; font-weight: 300; }
+
+        .field-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        .field-label { font-size: 0.78rem; font-weight: 600; color: var(--grey-dark); }
+
+        .field-input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid var(--grey-light);
+            border-radius: 9px;
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            color: var(--black);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .field-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(22,163,74,0.09); }
+        .field-input::placeholder { color: #c4c9d4; }
+
+        .amount-display {
+            background: var(--green-pale);
+            border: 1.5px solid var(--green-light);
+            border-radius: 9px;
+            padding: 13px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .amount-label { font-size: 0.75rem; color: var(--green-dark); font-weight: 500; }
+        .amount-value { font-family: var(--font-display); font-size: 1.4rem; color: var(--green-dark); }
+
+        .modal-actions { display: flex; gap: 10px; }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 9px;
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: all 0.2s;
+        }
+
+        .btn-ghost { background: var(--grey-pale); color: var(--grey-dark); border: 1.5px solid var(--grey-light); }
+        .btn-ghost:hover { border-color: var(--grey-dark); }
+        .btn-primary { background: var(--green); color: white; }
+        .btn-primary:hover { background: var(--green-dark); }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 24px; right: 24px;
+            background: var(--black);
+            color: var(--white);
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 0.835rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            box-shadow: 0 10px 32px rgba(0,0,0,0.2);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 999;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success svg { color: #86efac; }
+        .toast.error svg { color: #fca5a5; }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .mobile-menu-btn { display: flex; }
+            .stats-row { grid-template-columns: 1fr 1fr; }
+            .balance-hero { grid-template-columns: 1fr; }
+            .content { padding: 20px; }
+            .topbar { padding: 0 20px; }
+        }
+
+        @media (max-width: 560px) {
+            .stats-row { grid-template-columns: 1fr; }
+            .ref-card-header { flex-direction: column; }
+            table { font-size: 0.78rem; }
+            th, td { padding: 10px 14px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+    <a class="sidebar-logo" data-nav="landing">Vend<span>ly</span></a>
+    <nav class="sidebar-nav">
+        <div class="nav-label">Main</div>
+        <button class="nav-item" data-nav="dashboard">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="7" height="9" rx="1"/><rect x="15" y="3" width="7" height="5" rx="1"/>
+                <rect x="15" y="12" width="7" height="9" rx="1"/><rect x="2" y="16" width="7" height="5" rx="1"/>
+            </svg>
+            Dashboard
+        </button>
+        <button class="nav-item" data-nav="dashboard">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+            Products
+        </button>
+        <div class="nav-label">Account</div>
+        <button class="nav-item active">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+            Refer &amp; Earn
+        </button>
+        <button class="nav-item" data-nav="activate">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            Activation
+        </button>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="user-card">
+            <div class="user-avatar">AD</div>
+            <div style="flex:1">
+                <div class="user-name">Amaka David</div>
+                <div class="user-store">vendly.com/amaka</div>
+            </div>
+            <button data-logout title="Log out" style="background:none;border:none;cursor:pointer;padding:6px;border-radius:7px;color:var(--grey-mid);display:flex;align-items:center;transition:all 0.18s;" onmouseover="this.style.background='var(--grey-light)';this.style.color='var(--black)'" onmouseout="this.style.background='none';this.style.color='var(--grey-mid)'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+    <div class="topbar">
+        <div style="display:flex;align-items:center;gap:12px">
+            <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+            <div class="topbar-title">Refer &amp; Earn</div>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- BALANCE HERO -->
+        <div class="balance-hero">
+            <div>
+                <div class="balance-label">Available balance</div>
+                <div class="balance-amount">₦<span id="balanceDisplay">3,000</span></div>
+                <div class="balance-meta">
+                    <div class="balance-meta-item">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                        <span><strong id="totalReferrals">3</strong> referrals</span>
+                    </div>
+                    <div class="balance-meta-item">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                        <span>Total earned: <strong id="totalEarned">₦3,000</strong></span>
+                    </div>
+                </div>
+            </div>
+            <button class="withdraw-btn" id="withdrawBtn" onclick="openWithdraw()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Withdraw
+            </button>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-label">Total referrals</div>
+                    <div class="stat-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value" id="statReferrals">3</div>
+                <div class="stat-sub">people signed up with your code</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-label">Total earned</div>
+                    <div class="stat-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">₦3,000</div>
+                <div class="stat-sub"><strong>₦1,000</strong> per signup</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-label">Withdrawn</div>
+                    <div class="stat-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">₦0</div>
+                <div class="stat-sub">no withdrawals yet</div>
+            </div>
+        </div>
+
+        <!-- REFERRAL CODE CARD -->
+        <div class="ref-code-card">
+            <div class="ref-card-header">
+                <div>
+                    <div class="ref-card-title">Your referral link</div>
+                    <div class="ref-card-sub">Share this link with other sellers. When they sign up using your link, you earn ₦1,000 automatically added to your balance.</div>
+                </div>
+                <div class="earn-badge">
+                    <div class="earn-badge-amount">₦1,000</div>
+                    <div class="earn-badge-label">per signup</div>
+                </div>
+            </div>
+
+            <div class="ref-link-box">
+                <div class="ref-link-text">vendly.com/signup?ref=<span id="refCode">AMAKA7X</span></div>
+                <button class="copy-btn" id="copyLinkBtn" onclick="copyRefLink()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                    </svg>
+                    Copy link
+                </button>
+            </div>
+
+            <div class="share-row">
+                <button class="share-btn whatsapp" onclick="shareWhatsApp()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                    </svg>
+                    Share on WhatsApp
+                </button>
+                <button class="share-btn" onclick="copyRefCode()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                    </svg>
+                    Copy code only
+                </button>
+            </div>
+        </div>
+
+        <!-- REFERRALS TABLE -->
+        <div class="section-card">
+            <div class="section-card-header">
+                <div class="section-card-title">People you referred</div>
+                <div class="section-card-count" id="refTableCount">3 signups</div>
+            </div>
+            <div id="refTableBody">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Store</th>
+                            <th>Joined</th>
+                            <th>Status</th>
+                            <th>Your earning</th>
+                        </tr>
+                    </thead>
+                    <tbody id="refRows"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- WITHDRAWAL HISTORY -->
+        <div class="section-card">
+            <div class="section-card-header">
+                <div class="section-card-title">Withdrawal history</div>
+                <div class="section-card-count">No withdrawals yet</div>
+            </div>
+            <div class="table-empty">
+                <div class="table-icon" style="width:48px;height:48px;border-radius:14px;background:var(--green-pale);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:var(--green);">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                </div>
+                No withdrawals requested yet. Once you have a balance, tap Withdraw above.
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- WITHDRAWAL MODAL -->
+<div class="modal-overlay" id="withdrawModal">
+    <div class="modal">
+        <div class="modal-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+        </div>
+        <div class="modal-title">Request withdrawal</div>
+        <div class="modal-sub">Fill in your bank details. Vendly will review and pay within 24 hours.</div>
+
+        <div class="amount-display">
+            <div class="amount-label">Amount to withdraw</div>
+            <div class="amount-value" id="modalBalance">₦3,000</div>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">Bank name</label>
+            <input type="text" class="field-input" id="bankName" placeholder="e.g. GTBank, UBA, Opay">
+        </div>
+        <div class="field-group">
+            <label class="field-label">Account number</label>
+            <input type="text" class="field-input" id="accountNumber" placeholder="10-digit account number" maxlength="10">
+        </div>
+        <div class="field-group">
+            <label class="field-label">Account name</label>
+            <input type="text" class="field-input" id="accountName" placeholder="Name on the account">
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="closeWithdraw()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitWithdrawal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+                Send request
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" id="toastIcon">
+        <polyline points="20 6 9 17 4 12"/>
+    </svg>
+    <span id="toastMsg">Done</span>
+</div>
+
+<script>
+    // ── STATE ──
+    const VENDLY_WHATSAPP = '2349168311809';
+    const REF_CODE = 'AMAKA7X';
+    const REF_LINK = `https://vendly.com/signup?ref=${REF_CODE}`;
+    let balance = 3000;
+
+    // Demo referral data — comes from Supabase in production
+    const referrals = [
+        { name: 'Chioma Eze',   store: 'chioma-fashion', date: '12 May 2026', status: 'active',  earned: 1000 },
+        { name: 'Kola Bello',   store: 'kolabello',      date: '18 May 2026', status: 'active',  earned: 1000 },
+        { name: 'Ngozi Adaeze', store: 'ngozi-store',    date: '22 May 2026', status: 'pending', earned: 1000 },
+    ];
+
+    // ── RENDER REFERRALS ──
+    function renderReferrals() {
+        const tbody = document.getElementById('refRows');
+        if (!referrals.length) {
+            document.getElementById('refTableBody').innerHTML = `
+                <div class="table-empty">
+                    <div class="table-icon" style="width:48px;height:48px;border-radius:14px;background:var(--green-pale);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:var(--green);">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                    </div>
+                    No one has used your referral link yet. Start sharing!
+                </div>`;
+            return;
+        }
+
+        tbody.innerHTML = referrals.map(r => `
+            <tr>
+                <td><strong style="color:var(--black)">${r.name}</strong></td>
+                <td style="color:var(--grey-mid)">vendly.com/${r.store}</td>
+                <td style="color:var(--grey-mid)">${r.date}</td>
+                <td>
+                    <span class="badge ${r.status === 'active' ? 'badge-green' : 'badge-amber'}">
+                        ${r.status === 'active' ? 'Active' : 'Pending'}
+                    </span>
+                </td>
+                <td><strong style="color:var(--green)">₦${r.earned.toLocaleString()}</strong></td>
+            </tr>
+        `).join('');
+
+        document.getElementById('refTableCount').textContent = `${referrals.length} signup${referrals.length !== 1 ? 's' : ''}`;
+        document.getElementById('statReferrals').textContent = referrals.length;
+        document.getElementById('totalReferrals').textContent = referrals.length;
+    }
+
+    // ── COPY ──
+    function copyRefLink() {
+        navigator.clipboard.writeText(REF_LINK).then(() => {
+            const btn = document.getElementById('copyLinkBtn');
+            btn.classList.add('copied');
+            btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+            showToast('Referral link copied');
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy link`;
+            }, 2500);
+        });
+    }
+
+    function copyRefCode() {
+        navigator.clipboard.writeText(REF_CODE).then(() => {
+            showToast(`Code "${REF_CODE}" copied`);
+        });
+    }
+
+    function shareWhatsApp() {
+        const msg = `Hey! I use Vendly to run my online store and receive orders on WhatsApp. Sign up free with my link and we both earn:\n\n${REF_LINK}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    // ── WITHDRAW ──
+    function openWithdraw() {
+        if (balance < 1000) {
+            showToast('Minimum withdrawal is ₦1,000', 'error');
+            return;
+        }
+        document.getElementById('modalBalance').textContent = `₦${balance.toLocaleString()}`;
+        document.getElementById('withdrawModal').classList.add('open');
+    }
+
+    function closeWithdraw() {
+        document.getElementById('withdrawModal').classList.remove('open');
+    }
+
+    function submitWithdrawal() {
+        const bank    = document.getElementById('bankName').value.trim();
+        const acctNum = document.getElementById('accountNumber').value.trim();
+        const acctName = document.getElementById('accountName').value.trim();
+
+        if (!bank || !acctNum || !acctName) {
+            showToast('Please fill in all fields', 'error');
+            return;
+        }
+
+        if (!/^\d{10}$/.test(acctNum)) {
+            showToast('Account number must be 10 digits', 'error');
+            return;
+        }
+
+        // Build WhatsApp message to admin
+        const msg = `*Vendly Withdrawal Request*\n\nUser: Amaka David\nStore: vendly.com/amaka\nAmount: ₦${balance.toLocaleString()}\n\nBank: ${bank}\nAccount: ${acctNum}\nAccount Name: ${acctName}`;
+        const url = `https://wa.me/${VENDLY_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+
+        closeWithdraw();
+        showToast('Withdrawal request sent to Vendly');
+        window.open(url, '_blank');
+    }
+
+    // ── TOAST ──
+    let toastTimer;
+    function showToast(msg, type = 'success') {
+        const toast = document.getElementById('toast');
+        const icon = document.getElementById('toastIcon');
+        document.getElementById('toastMsg').textContent = msg;
+        toast.className = `toast ${type}`;
+        icon.innerHTML = type === 'error'
+            ? `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`
+            : `<polyline points="20 6 9 17 4 12"/>`;
+        clearTimeout(toastTimer);
+        requestAnimationFrame(() => toast.classList.add('show'));
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+    }
+
+    // ── CLOSE MODAL ON OUTSIDE CLICK ──
+    document.getElementById('withdrawModal').addEventListener('click', function(e) {
+        if (e.target === this) closeWithdraw();
+    });
+
+    // ── INIT ──
+    renderReferrals();
+
+    // Disable withdraw if balance is 0
+    if (balance === 0) {
+        document.getElementById('withdrawBtn').disabled = true;
+    }
+</script>
+
+</body>
+</html>

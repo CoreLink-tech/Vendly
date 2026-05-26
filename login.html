@@ -796,10 +796,7 @@
       showToast('Login successful — redirecting…');
       setTimeout(() => VendlyNav.go('dashboard'), 900);
     } catch (err) {
-      const message = (err.message || '').toLowerCase().includes('email not confirmed')
-        ? 'Check your email inbox and confirm your account before logging in.'
-        : (err.message || 'Login failed');
-      showToast(message, 'error');
+      showToast(err.message || 'Login failed', 'error');
     } finally {
       loginBtn.classList.remove('loading');
       loginBtn.disabled = false;

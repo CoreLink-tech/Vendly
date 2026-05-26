@@ -195,7 +195,7 @@
   let gridListenerAttached = false;
 
   function normalizeWhatsAppNumber(input) {
-    const digits = input.replace(/\D/g, '');
+    const digits = String(input || '').replace(/\D/g, '');
     if (!digits) return '';
     if (digits.startsWith('0')) return `234${digits.slice(1)}`;
     if (digits.startsWith('234')) return digits;
@@ -262,19 +262,30 @@
 
   function renderGrid() {
     const grid = document.getElementById('product-grid');
+    if (!PRODUCTS.length) {
+      grid.innerHTML = `
+        <div style="grid-column:1 / -1; background:#fff; border:1px solid #e5e7eb; border-radius:18px; padding:28px 20px; text-align:center; color:#374151;">
+          <div style="font-size:20px; font-weight:600; margin-bottom:8px;">No products yet</div>
+          <div style="font-size:14px; line-height:1.6;">This vendor has not published any live products yet.</div>
+        </div>`;
+      return;
+    }
+
     grid.innerHTML = '';
-    PRODUCTS.forEach(p => {
+    PRODUCTS.forEach((p, index) => {
       const qty = cart[p.id] || 0;
       const card = document.createElement('div');
       card.className = 'product-card' + (qty > 0 ? ' in-cart' : '');
       card.dataset.id = p.id;
       card.innerHTML = `
         <div class="card-image">
-          ${ICONS[p.icon] || ICONS.bag}
+          ${p.image_url
+            ? `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.name)}" style="width:100%;height:100%;object-fit:cover;">`
+            : (ICONS[p.icon] || iconForIndex(index) || ICONS.bag)}
           <div class="card-badge">${qty}</div>
         </div>
         <div class="card-body">
-          <div class="card-name">${p.name}</div>
+          <div class="card-name">${escapeHtml(p.name)}</div>
           <div class="card-price">${fmt(p.price)}</div>
           <div class="card-action">
             <button class="btn-add" data-id="${p.id}">
@@ -294,16 +305,37 @@
         </div>`;
       grid.appendChild(card);
     });
-    document.getElementById('product-grid').addEventListener('click', handleClick);
+    if (!gridListenerAttached) {
+      document.getElementById('product-grid').addEventListener('click', handleClick);
+      gridListenerAttached = true;
+    }
   }
 
   function handleClick(e) {
-    const add   = e.target.closest('.btn-add');
+    const add = e.target.closest('.btn-add');
     const minus = e.target.closest('.qty-minus');
-    const plus  = e.target.closest('.qty-plus');
-    if (add)   { const id = +add.dataset.id;   cart[id] = 1; showToast('Added — ' + PRODUCTS.find(p=>p.id===id).name); updateCard(id); updateBar(); }
-    if (minus) { const id = +minus.dataset.id; cart[id] > 1 ? cart[id]-- : delete cart[id]; updateCard(id); updateBar(); }
-    if (plus)  { const id = +plus.dataset.id;  cart[id] = (cart[id]||0)+1; updateCard(id); updateBar(); }
+    const plus = e.target.closest('.qty-plus');
+    if (add) {
+      const id = add.dataset.id;
+      cart[id] = 1;
+      const product = PRODUCTS.find(p => String(p.id) === String(id));
+      if (product) showToast(`Added ${product.name}`);
+      updateCard(id);
+      updateBar();
+    }
+    if (minus) {
+      const id = minus.dataset.id;
+      cart[id] > 1 ? cart[id]-- : delete cart[id];
+      updateCard(id);
+      updateBar();
+    }
+
+    if (plus) {
+      const id = plus.dataset.id;
+      cart[id] = (cart[id] || 0) + 1;
+      updateCard(id);
+      updateBar();
+    }
   }
 
   function updateCard(id) {
@@ -325,35 +357,145 @@
   }
 
   function buildWALink() {
-    const phone = STORE.phone || DEFAULT_STORE.phone;
-    const lines = [`New order — ${STORE.name}`, `vendly.com/${STORE.slug}`, ''];
-    PRODUCTS.forEach(p => { if (cart[p.id]) lines.push(`${p.name} × ${cart[p.id]} — ${fmt(p.price * cart[p.id])}`); });
+    if (!STORE.phone) return '#';
+    const lines = [`New order - ${STORE.name}`, STORE.slug ? `vendly.com/${STORE.slug}` : '', ''];
+    PRODUCTS.forEach(p => {
+      if (cart[p.id]) lines.push(`${p.name} x ${cart[p.id]} - ${fmt(Number(p.price || 0) * cart[p.id])}`);
+    });
     lines.push('', `Total: ${fmt(cartTotal())}`);
-    return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join('\n'))}`;
+    return `https://wa.me/${STORE.phone}?text=${encodeURIComponent(lines.join('\n'))}`;
   }
 
   function renderStore() {
-    document.title = `${STORE.name} — Shop on Vendly`;
+    document.title = STORE.slug ? `${STORE.name} | Vendly` : 'Vendly Store';
     const storeNameEls = document.querySelectorAll('.store-name');
     storeNameEls.forEach(el => el.textContent = STORE.name);
+    const avatar = document.getElementById('store-avatar') || document.querySelector('.store-avatar');
+    if (avatar) {
+      avatar.textContent = (STORE.name || 'V').trim().charAt(0).toUpperCase() || 'V';
+    }
+    const tagline = document.querySelector('.store-tagline');
+    if (tagline) {
+      tagline.innerHTML = '<div class="store-tagline-dot"></div>Order directly on WhatsApp';
+    }
+    const heroGreeting = document.querySelector('.hero-greeting');
+    if (heroGreeting) {
+      heroGreeting.textContent = STORE.slug ? `vendly.com/${STORE.slug}` : 'Vendly Store';
+    }
+    const heroTitle = document.querySelector('.hero-title');
+    if (heroTitle) {
+      heroTitle.textContent = `Shop ${STORE.name}`;
+    }
+    const heroDesc = document.querySelector('.hero-desc');
+    if (heroDesc) {
+      heroDesc.textContent = `Browse ${STORE.name}'s live products and place your order on WhatsApp.`;
+    }
   }
 
   function showToast(msg) {
     const c = document.getElementById('toast-container');
     const t = document.createElement('div');
     t.className = 'toast';
-    t.innerHTML = `<div class="toast-dot"></div><span>${msg}</span>`;
+    t.innerHTML = `<div class="toast-dot"></div><span>${escapeHtml(msg)}</span>`;
     c.appendChild(t);
     setTimeout(() => { t.classList.add('removing'); t.addEventListener('animationend', () => t.remove()); }, 2200);
+  }
+
+  function renderMissingStore(message) {
+    STORE = { ...EMPTY_STORE };
+    PRODUCTS = [];
+    renderStore();
+    document.getElementById('product-grid').innerHTML = `
+      <div style="grid-column:1 / -1; background:#fff; border:1px solid #e5e7eb; border-radius:18px; padding:28px 20px; text-align:center; color:#374151;">
+        <div style="font-size:20px; font-weight:600; margin-bottom:8px;">Store unavailable</div>
+        <div style="font-size:14px; line-height:1.6;">${escapeHtml(message)}</div>
+      </div>`;
+    updateBar();
+  }
+
+  async function loadProductsFromBackend(client, ownerId) {
+    const { data, error } = await client
+      .from('products')
+      .select('id, name, price, description, image_url, status')
+      .eq('owner_id', ownerId)
+      .eq('status', 'live')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    PRODUCTS = data || [];
+    renderGrid();
+    updateBar();
+  }
+
+  async function recordStoreView(client) {
+    const viewer = window.VendlyAuth?.getUser?.();
+    if (viewer?.id && viewer.id === STORE.owner_id) return;
+
+    try {
+      await client.from('store_views').insert([{
+        store_id: STORE.id,
+        owner_id: STORE.owner_id,
+        visitor_key: getVisitorKey(),
+        path: `${window.location.pathname}${window.location.search}`,
+        referrer: document.referrer || null,
+        user_agent: navigator.userAgent || null
+      }]);
+    } catch (err) {
+      console.warn('Could not record store view', err.message || err);
+    }
+  }
+
+  async function loadStorefront() {
+    const slug = getRequestedSlug();
+    if (!slug) {
+      renderMissingStore('This storefront link is incomplete.');
+      return;
+    }
+
+    const client = await window.waitForSupabaseClient().catch(() => null);
+    if (!client) {
+      renderMissingStore('Could not connect to the store right now.');
+      return;
+    }
+
+    try {
+      const { data: store, error } = await client
+        .from('stores')
+        .select('id, owner_id, name, slug, whatsapp')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!store) {
+        renderMissingStore('This store could not be found.');
+        return;
+      }
+
+      STORE = {
+        ...EMPTY_STORE,
+        ...store,
+        phone: normalizeWhatsAppNumber(store.whatsapp || '')
+      };
+
+      renderStore();
+      await Promise.all([
+        loadProductsFromBackend(client, STORE.owner_id),
+        recordStoreView(client)
+      ]);
+    } catch (err) {
+      console.warn('Storefront load failed', err.message || err);
+      renderMissingStore('This store could not be loaded right now.');
+    }
   }
 
   window.addEventListener('scroll', () => {
     document.getElementById('store-header').classList.toggle('scrolled', window.scrollY > 10);
   }, { passive: true });
 
+  renderStore();
   renderGrid();
   updateBar();
-  renderStore();
+  loadStorefront();
 </script>
 </body>
 </html>
