@@ -140,6 +140,34 @@ function computeDaysLeft(value) {
   return Math.max(0, Math.ceil((parsed.getTime() - Date.now()) / 86400000));
 }
 
+function firstPresentValue(...values) {
+  for (const value of values) {
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed) return trimmed;
+      continue;
+    }
+
+    if (value !== null && value !== undefined) return value;
+  }
+
+  return '';
+}
+
+function extractUserEmail(user) {
+  if (!user) return '';
+
+  const identities = Array.isArray(user.identities) ? user.identities : [];
+  return firstPresentValue(
+    user.email,
+    user.new_email,
+    user.email_address,
+    user.user_metadata?.email,
+    user.app_metadata?.email,
+    ...identities.map(identity => identity?.identity_data?.email)
+  );
+}
+
 const Stores = {
   APP_BASE_URL,
   APP_DISPLAY_HOST,
@@ -318,22 +346,121 @@ const Auth = {
     if (!user) return null;
 
     const metadata = user.user_metadata || {};
-    const fallbackStoreName = user.storeName || metadata.storeName || '';
+    const cachedUser = safeParseStoredUser();
+    const fallbackStoreName = firstPresentValue(
+      user.storeName,
+      user.store_name,
+      user.store?.name,
+      metadata.storeName,
+      metadata.store_name,
+      cachedUser?.storeName,
+      cachedUser?.store?.name
+    );
+    const fallbackSlug = Stores.normalizeSlug(firstPresentValue(
+      user.slug,
+      user.storeSlug,
+      user.store_slug,
+      user.store?.slug,
+      metadata.slug,
+      metadata.storeSlug,
+      metadata.store_slug,
+      cachedUser?.slug,
+      cachedUser?.store?.slug,
+      fallbackStoreName
+    ));
+    const fallbackPhone = firstPresentValue(
+      user.phone,
+      user.whatsapp,
+      user.whatsapp_number,
+      user.store?.whatsapp,
+      user.store?.phone,
+      metadata.phone,
+      metadata.whatsapp,
+      metadata.whatsapp_number,
+      cachedUser?.phone,
+      cachedUser?.store?.whatsapp
+    );
     const enriched = {
       ...user,
-      firstName: user.firstName || metadata.firstName || metadata.first_name || '',
-      lastName: user.lastName || metadata.lastName || metadata.last_name || '',
+      email: extractUserEmail(user) || extractUserEmail(cachedUser),
+      firstName: firstPresentValue(
+        user.firstName,
+        user.first_name,
+        metadata.firstName,
+        metadata.first_name,
+        cachedUser?.firstName,
+        cachedUser?.first_name
+      ),
+      lastName: firstPresentValue(
+        user.lastName,
+        user.last_name,
+        metadata.lastName,
+        metadata.last_name,
+        cachedUser?.lastName,
+        cachedUser?.last_name
+      ),
       storeName: fallbackStoreName,
-      slug: Stores.normalizeSlug(user.slug || metadata.slug || fallbackStoreName || ''),
-      phone: user.phone || metadata.phone || metadata.whatsapp || '',
-      storeId: user.storeId || metadata.storeId || null,
-      subscription_status: normalizeStoreStatus(user.subscription_status || metadata.subscription_status),
-      subscription_plan: normalizeSubscriptionPlan(user.subscription_plan || metadata.subscription_plan),
-      subscription_started_at: normalizeIsoDate(user.subscription_started_at || metadata.subscription_started_at),
-      subscription_expires_at: normalizeIsoDate(user.subscription_expires_at || metadata.subscription_expires_at),
-      trial_started_at: normalizeIsoDate(user.trial_started_at || metadata.trial_started_at),
-      trial_ends_at: normalizeIsoDate(user.trial_ends_at || metadata.trial_ends_at),
-      activated_at: normalizeIsoDate(user.activated_at || metadata.activated_at),
+      slug: fallbackSlug,
+      phone: fallbackPhone,
+      storeId: firstPresentValue(
+        user.storeId,
+        user.store_id,
+        user.store?.id,
+        metadata.storeId,
+        metadata.store_id,
+        cachedUser?.storeId,
+        cachedUser?.store?.id,
+        null
+      ),
+      subscription_status: normalizeStoreStatus(firstPresentValue(
+        user.subscription_status,
+        user.store?.subscription_status,
+        metadata.subscription_status,
+        cachedUser?.subscription_status,
+        cachedUser?.store?.subscription_status
+      )),
+      subscription_plan: normalizeSubscriptionPlan(firstPresentValue(
+        user.subscription_plan,
+        user.store?.subscription_plan,
+        metadata.subscription_plan,
+        cachedUser?.subscription_plan,
+        cachedUser?.store?.subscription_plan
+      )),
+      subscription_started_at: normalizeIsoDate(firstPresentValue(
+        user.subscription_started_at,
+        user.store?.subscription_started_at,
+        metadata.subscription_started_at,
+        cachedUser?.subscription_started_at,
+        cachedUser?.store?.subscription_started_at
+      )),
+      subscription_expires_at: normalizeIsoDate(firstPresentValue(
+        user.subscription_expires_at,
+        user.store?.subscription_expires_at,
+        metadata.subscription_expires_at,
+        cachedUser?.subscription_expires_at,
+        cachedUser?.store?.subscription_expires_at
+      )),
+      trial_started_at: normalizeIsoDate(firstPresentValue(
+        user.trial_started_at,
+        user.store?.trial_started_at,
+        metadata.trial_started_at,
+        cachedUser?.trial_started_at,
+        cachedUser?.store?.trial_started_at
+      )),
+      trial_ends_at: normalizeIsoDate(firstPresentValue(
+        user.trial_ends_at,
+        user.store?.trial_ends_at,
+        metadata.trial_ends_at,
+        cachedUser?.trial_ends_at,
+        cachedUser?.store?.trial_ends_at
+      )),
+      activated_at: normalizeIsoDate(firstPresentValue(
+        user.activated_at,
+        user.store?.activated_at,
+        metadata.activated_at,
+        cachedUser?.activated_at,
+        cachedUser?.store?.activated_at
+      )),
       isAdmin: false,
     };
 
@@ -398,14 +525,33 @@ const Auth = {
       }
     }
 
+    const derivedStore = Stores.normalizeStoreRecord({
+      id: enriched.storeId,
+      owner_id: enriched.id || null,
+      name: enriched.storeName,
+      slug: enriched.slug,
+      whatsapp: enriched.phone,
+      subscription_status: enriched.subscription_status,
+      subscription_plan: enriched.subscription_plan,
+      subscription_started_at: enriched.subscription_started_at,
+      subscription_expires_at: enriched.subscription_expires_at,
+      trial_started_at: enriched.trial_started_at,
+      trial_ends_at: enriched.trial_ends_at,
+      activated_at: enriched.activated_at,
+    });
+
     const displayName = [enriched.firstName, enriched.lastName].filter(Boolean).join(' ').trim()
       || enriched.storeName
       || enriched.email
       || 'Vendor';
 
+    enriched.store = (derivedStore?.id || derivedStore?.name || derivedStore?.slug || derivedStore?.whatsapp)
+      ? derivedStore
+      : null;
     enriched.displayName = displayName;
     enriched.initials = buildInitials(displayName);
     enriched.storeLink = Stores.buildDisplayStoreLink(enriched.slug);
+    enriched.storeUrl = Stores.buildCanonicalStoreUrl(enriched.slug);
     enriched.subscription_days_left = computeDaysLeft(enriched.subscription_expires_at);
     enriched.isAdmin = !!enriched.isAdmin;
     return enriched;

@@ -162,6 +162,12 @@ button {
   display: flex;
   gap: 12px;
   align-items: center;
+  min-width: 0;
+}
+
+.user-card-copy {
+  flex: 1;
+  min-width: 0;
 }
 
 .user-avatar {
@@ -177,18 +183,25 @@ button {
 
 .user-name {
   font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-store {
   margin-top: 3px;
   color: var(--ink-500);
   font-size: 0.87rem;
-  word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ghost-icon-btn {
   width: 40px;
   height: 40px;
+  flex-shrink: 0;
   border-radius: 14px;
   border: 1px solid var(--line);
   background: var(--white);
@@ -279,7 +292,7 @@ button {
   position: relative;
   overflow: hidden;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
   padding: 24px 26px;
@@ -296,8 +309,15 @@ button {
 
 .store-banner-left {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
+  flex: 1 1 420px;
+  min-width: 0;
+}
+
+.store-banner-copy {
+  flex: 1;
+  min-width: 0;
 }
 
 .store-banner-icon {
@@ -327,7 +347,7 @@ button {
   font-size: clamp(1.05rem, 2vw, 1.4rem);
   font-weight: 800;
   line-height: 1.1;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .banner-meta {
@@ -342,6 +362,7 @@ button {
   gap: 10px;
   flex-wrap: wrap;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .btn {

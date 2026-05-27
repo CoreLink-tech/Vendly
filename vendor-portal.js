@@ -196,36 +196,176 @@
     return state.products.find(product => String(product.id) === String(productId)) || null;
   }
 
+  function firstPresentValue(...values) {
+    for (const value of values) {
+      if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (trimmed) return trimmed;
+        continue;
+      }
+
+      if (value !== null && value !== undefined) return value;
+    }
+
+    return '';
+  }
+
+  function buildInitials(value) {
+    const text = String(value || '').trim();
+    if (!text) return 'VD';
+
+    const parts = text.split(/\s+/).filter(Boolean);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+
+  function getUserEmail(user = state.user) {
+    if (!user) return '';
+
+    const identities = Array.isArray(user.identities) ? user.identities : [];
+    return firstPresentValue(
+      user.email,
+      user.new_email,
+      user.email_address,
+      user.user_metadata?.email,
+      user.app_metadata?.email,
+      ...identities.map(identity => identity?.identity_data?.email)
+    );
+  }
+
+  function getUserStoreName(user = state.user) {
+    return firstPresentValue(
+      user?.storeName,
+      user?.store_name,
+      user?.store?.name,
+      user?.user_metadata?.storeName,
+      user?.user_metadata?.store_name
+    );
+  }
+
+  function getUserSlug(user = state.user) {
+    return window.VendlyStores.normalizeSlug(firstPresentValue(
+      user?.slug,
+      user?.storeSlug,
+      user?.store_slug,
+      user?.store?.slug,
+      user?.user_metadata?.slug,
+      user?.user_metadata?.storeSlug,
+      user?.user_metadata?.store_slug,
+      user?.storeLink?.split('/').pop(),
+      getUserStoreName(user)
+    ));
+  }
+
+  function getUserPhone(user = state.user) {
+    return firstPresentValue(
+      user?.phone,
+      user?.whatsapp,
+      user?.whatsapp_number,
+      user?.store?.whatsapp,
+      user?.store?.phone,
+      user?.user_metadata?.phone,
+      user?.user_metadata?.whatsapp,
+      user?.user_metadata?.whatsapp_number
+    );
+  }
+
+  function getUserDisplayName(user = state.user) {
+    return firstPresentValue(
+      user?.displayName,
+      [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim(),
+      getUserStoreName(user),
+      getUserEmail(user),
+      'Vendor account'
+    );
+  }
+
+  function getUserSubtitle(user = state.user) {
+    return firstPresentValue(
+      getUserEmail(user),
+      user?.storeLink,
+      getStoreLabelFromSlug(getUserSlug(user)),
+      'Add your account email'
+    );
+  }
+
+  function getStoreLabelFromSlug(slug) {
+    return window.VendlyStores.buildDisplayStoreLink(slug || '');
+  }
+
   function getStoreFromUser(user) {
     if (!user) return null;
     return window.VendlyStores.normalizeStoreRecord({
-      id: user.storeId || null,
-      owner_id: user.id || null,
-      name: user.storeName || '',
-      slug: user.slug || window.VendlyStores.normalizeSlug(user.storeName || '') || '',
-      whatsapp: user.phone || '',
-      subscription_status: user.subscription_status || null,
-      subscription_plan: user.subscription_plan || null,
-      subscription_started_at: user.subscription_started_at || null,
-      subscription_expires_at: user.subscription_expires_at || null,
-      trial_started_at: user.trial_started_at || null,
-      trial_ends_at: user.trial_ends_at || null,
-      activated_at: user.activated_at || null
+      ...(user.store || {}),
+      id: firstPresentValue(user.storeId, user.store_id, user.store?.id, null),
+      owner_id: firstPresentValue(user.id, user.store?.owner_id, null),
+      name: getUserStoreName(user),
+      slug: getUserSlug(user),
+      whatsapp: getUserPhone(user),
+      subscription_status: firstPresentValue(
+        user.subscription_status,
+        user.store?.subscription_status,
+        user.user_metadata?.subscription_status,
+        null
+      ),
+      subscription_plan: firstPresentValue(
+        user.subscription_plan,
+        user.store?.subscription_plan,
+        user.user_metadata?.subscription_plan,
+        null
+      ),
+      subscription_started_at: firstPresentValue(
+        user.subscription_started_at,
+        user.store?.subscription_started_at,
+        user.user_metadata?.subscription_started_at,
+        null
+      ),
+      subscription_expires_at: firstPresentValue(
+        user.subscription_expires_at,
+        user.store?.subscription_expires_at,
+        user.user_metadata?.subscription_expires_at,
+        null
+      ),
+      trial_started_at: firstPresentValue(
+        user.trial_started_at,
+        user.store?.trial_started_at,
+        user.user_metadata?.trial_started_at,
+        null
+      ),
+      trial_ends_at: firstPresentValue(
+        user.trial_ends_at,
+        user.store?.trial_ends_at,
+        user.user_metadata?.trial_ends_at,
+        null
+      ),
+      activated_at: firstPresentValue(
+        user.activated_at,
+        user.store?.activated_at,
+        user.user_metadata?.activated_at,
+        null
+      )
     });
   }
 
   function getStoreLabel() {
-    return window.VendlyStores.buildDisplayStoreLink(state.store?.slug || '');
+    const resolvedSlug = state.store?.slug || getUserSlug();
+    return resolvedSlug
+      ? getStoreLabelFromSlug(resolvedSlug)
+      : firstPresentValue(state.user?.storeLink, getStoreLabelFromSlug(''));
   }
 
   function getCanonicalStoreUrl() {
-    return window.VendlyStores.buildCanonicalStoreUrl(state.store?.slug || '');
+    const resolvedSlug = state.store?.slug || getUserSlug();
+    return resolvedSlug
+      ? window.VendlyStores.buildCanonicalStoreUrl(resolvedSlug)
+      : firstPresentValue(state.user?.storeUrl, window.VendlyStores.buildCanonicalStoreUrl(''));
   }
 
   function getOpenStoreUrl() {
+    const resolvedSlug = state.store?.slug || getUserSlug();
     const hostname = window.location.hostname || '';
     if (hostname === '127.0.0.1' || hostname === 'localhost') {
-      return window.VendlyStores.buildPreviewStoreUrl(state.store?.slug || '');
+      return window.VendlyStores.buildPreviewStoreUrl(resolvedSlug || '');
     }
     return getCanonicalStoreUrl();
   }
@@ -317,10 +457,19 @@
     const bannerLink = byId('storeBannerLink');
     const bannerMeta = byId('storeBannerMeta');
     const bannerStatus = byId('storeStatusChip');
+    const resolvedSlug = state.store?.slug || getUserSlug();
+    const hasStoreLink = !!resolvedSlug;
     const canonicalStoreUrl = getCanonicalStoreUrl();
 
-    if (bannerLink) bannerLink.textContent = getStoreLabel();
-    if (bannerMeta) bannerMeta.textContent = state.access?.message || 'Your storefront link updates as soon as your account is ready.';
+    if (bannerLink) {
+      bannerLink.textContent = hasStoreLink ? getStoreLabel() : 'Choose a store name to generate your link';
+      bannerLink.title = hasStoreLink ? getStoreLabel() : '';
+    }
+    if (bannerMeta) {
+      bannerMeta.textContent = hasStoreLink
+        ? (state.access?.message || 'Your storefront link updates as soon as your account is ready.')
+        : 'Add or restore your store name and slug so customers can open your storefront.';
+    }
 
     if (bannerStatus) {
       bannerStatus.textContent = state.access?.label || 'Store ready';
@@ -329,9 +478,9 @@
 
     const copyBtn = byId('copyStoreLinkBtn');
     if (copyBtn) {
-      copyBtn.disabled = !state.store?.slug;
+      copyBtn.disabled = !hasStoreLink;
       copyBtn.onclick = async () => {
-        if (!state.store?.slug) {
+        if (!hasStoreLink) {
           showToast('Choose a store link before copying it.', 'error');
           return;
         }
@@ -347,7 +496,7 @@
 
     const openBtn = byId('openStoreBtn');
     if (openBtn) {
-      if (state.store?.slug) {
+      if (hasStoreLink) {
         openBtn.href = getOpenStoreUrl();
         openBtn.removeAttribute('aria-disabled');
       } else {
@@ -358,7 +507,7 @@
 
     const topbarStorefrontBtn = byId('viewStorefrontBtn');
     if (topbarStorefrontBtn) {
-      if (state.store?.slug) {
+      if (hasStoreLink) {
         topbarStorefrontBtn.href = getOpenStoreUrl();
       } else {
         topbarStorefrontBtn.href = '#';
@@ -367,8 +516,9 @@
 
     const sidebarStoreLink = byId('userStoreLink');
     if (sidebarStoreLink) {
-      sidebarStoreLink.textContent = state.user?.email || ' ';
-      sidebarStoreLink.title = state.user?.email || '';
+      const subtitle = getUserSubtitle();
+      sidebarStoreLink.textContent = subtitle;
+      sidebarStoreLink.title = subtitle;
     }
   }
 
@@ -392,10 +542,10 @@
     const userName = byId('userName');
     const userAvatar = byId('userAvatar');
     if (userName) {
-      userName.textContent = state.user?.storeName || state.user?.displayName || state.user?.email || 'Vendor account';
+      userName.textContent = getUserDisplayName();
       userName.title = userName.textContent;
     }
-    if (userAvatar) userAvatar.textContent = state.user?.initials || 'VD';
+    if (userAvatar) userAvatar.textContent = state.user?.initials || buildInitials(getUserDisplayName());
   }
 
   function renderSidebarState() {
@@ -939,7 +1089,7 @@
 
     byId('accountFirstName').value = state.user?.firstName || '';
     byId('accountLastName').value = state.user?.lastName || '';
-    byId('accountEmail').value = state.user?.email || '';
+    byId('accountEmail').value = getUserEmail();
     byId('accountStoreName').value = state.store?.name || '';
     byId('accountWhatsapp').value = state.store?.whatsapp || '';
     byId('accountSlug').value = state.store?.slug || '';
