@@ -1,11 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/:slug",
-      "destination": "/storefront.html"
-    },
-    {
-      "source": "/:slug/",
+      "source": "/((?!dashboard\\.html|login\\.html|signup\\.html|produc\\.html|order\\.html|analytics\\.html|accounts\\.html|activate\\.html|referral\\.html|admin\\.html|admin-accounts\\.html|admin-codes\\.html|admin-login\\.html|admin-withdrawals\\.html|storefront\\.html|index\\.html|ADMIN\\.html|styles\\.css|vendor-portal\\.css|script\\.js|supabase\\.js|vendly-nav\\.js|vendly-stores\\.js|vendor-portal\\.js|activate-store\\.js|referral-portal\\.js|admin-portal\\.js).*)",
       "destination": "/storefront.html"
     }
   ]
