@@ -6,10 +6,81 @@
 const PAGES = {
   landing: 'index.html',
   login: 'login.html',
+  adminLogin: 'admin-login.html',
   signup: 'signup.html',
   dashboard: 'dashboard.html',
+  admin: 'ADMIN.html',
+  adminWithdrawals: 'admin-withdrawals.html',
+  adminCodes: 'admin-codes.html',
+  adminAccounts: 'admin-accounts.html',
   storefront: 'storefront.html',
+  products: 'produc.html',
+  orders: 'order.html',
+  analytics: 'analytics.html',
+  account: 'accounts.html',
+  activate: 'activate.html',
+  referral: 'referral.html',
 };
+
+const APP_BASE_URL = 'https://vendly-snowy.vercel.app';
+const APP_DISPLAY_HOST = APP_BASE_URL.replace(/^https?:\/\//, '');
+const sessionState = {
+  confirmed: false,
+  checked: false,
+};
+
+const Loading = (() => {
+  let mounted = false;
+  let el = null;
+
+  function ensure() {
+    if (mounted) return;
+    mounted = true;
+
+    const style = document.createElement('style');
+    style.setAttribute('data-vendly-loader', 'true');
+    style.textContent = `
+      .vendly-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(10px);
+      }
+      .vendly-loader.show { display: flex; }
+      .vendly-loader .ring {
+        width: 54px;
+        height: 54px;
+        border-radius: 999px;
+        border: 5px solid rgba(22, 163, 74, 0.18);
+        border-top-color: rgba(22, 163, 74, 0.95);
+        animation: vendlySpin 0.9s linear infinite;
+      }
+      @keyframes vendlySpin { to { transform: rotate(360deg); } }
+    `;
+    document.head.appendChild(style);
+
+    el = document.createElement('div');
+    el.className = 'vendly-loader';
+    el.innerHTML = '<div class="ring" aria-label="Loading" role="status"></div>';
+    document.body.appendChild(el);
+  }
+
+  function show() {
+    ensure();
+    el?.classList.add('show');
+  }
+
+  function hide() {
+    if (!mounted) return;
+    el?.classList.remove('show');
+  }
+
+  return { ensure, show, hide };
+})();
 
 function buildInitials(value) {
   const text = (value || '').trim();
@@ -30,9 +101,209 @@ function safeParseStoredUser() {
   }
 }
 
+function normalizeIsoDate(value) {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString();
+}
+
+function formatAccessDate(value) {
+  const parsed = value ? new Date(value) : null;
+  if (!parsed || Number.isNaN(parsed.getTime())) return 'your subscription expiry date';
+  return parsed.toLocaleDateString('en-NG', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+function normalizeSubscriptionPlan(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  return normalized === 'yearly' ? 'yearly' : normalized === 'monthly' ? 'monthly' : null;
+}
+
+function normalizeStoreStatus(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  return ['active', 'paused', 'expired', 'pending_activation'].includes(normalized)
+    ? normalized
+    : null;
+}
+
+function planDurationDays(plan) {
+  return normalizeSubscriptionPlan(plan) === 'yearly' ? 365 : 30;
+}
+
+function computeDaysLeft(value) {
+  const parsed = value ? new Date(value) : null;
+  if (!parsed || Number.isNaN(parsed.getTime())) return 0;
+  return Math.max(0, Math.ceil((parsed.getTime() - Date.now()) / 86400000));
+}
+
+const Stores = {
+  APP_BASE_URL,
+  APP_DISPLAY_HOST,
+  STORE_SELECT: 'id, owner_id, name, slug, whatsapp, subscription_status, subscription_plan, subscription_started_at, subscription_expires_at, trial_started_at, trial_ends_at, activated_at, created_at, updated_at',
+
+  normalizeSlug(value) {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60);
+  },
+
+  buildDisplayStoreLink(slug) {
+    const safeSlug = Stores.normalizeSlug(slug || '');
+    return safeSlug ? `${APP_DISPLAY_HOST}/${safeSlug}` : `${APP_DISPLAY_HOST}/store-link`;
+  },
+
+  buildCanonicalStoreUrl(slug) {
+    const safeSlug = Stores.normalizeSlug(slug || '');
+    return safeSlug ? `${APP_BASE_URL}/${encodeURIComponent(safeSlug)}` : APP_BASE_URL;
+  },
+
+  buildPreviewStoreUrl(slug) {
+    const safeSlug = Stores.normalizeSlug(slug || '');
+    return safeSlug ? `storefront.html?slug=${encodeURIComponent(safeSlug)}` : 'storefront.html';
+  },
+
+  normalizeStoreRecord(store) {
+    if (!store) return null;
+
+    const normalizedName = String(store.name || '').trim();
+    const normalizedSlug = Stores.normalizeSlug(store.slug || normalizedName || '');
+
+    return {
+      ...store,
+      id: store.id || null,
+      owner_id: store.owner_id || null,
+      name: normalizedName,
+      slug: normalizedSlug,
+      whatsapp: String(store.whatsapp || store.phone || '').trim(),
+      subscription_status: normalizeStoreStatus(store.subscription_status),
+      subscription_plan: normalizeSubscriptionPlan(store.subscription_plan),
+      subscription_started_at: normalizeIsoDate(store.subscription_started_at),
+      subscription_expires_at: normalizeIsoDate(store.subscription_expires_at),
+      trial_started_at: normalizeIsoDate(store.trial_started_at),
+      trial_ends_at: normalizeIsoDate(store.trial_ends_at),
+      activated_at: normalizeIsoDate(store.activated_at),
+      days_left: Number.isFinite(Number(store.days_left)) ? Number(store.days_left) : computeDaysLeft(store.subscription_expires_at),
+      created_at: normalizeIsoDate(store.created_at),
+      updated_at: normalizeIsoDate(store.updated_at),
+    };
+  },
+
+  buildStorePayload(store) {
+    const record = Stores.normalizeStoreRecord(store) || {};
+    const subscriptionStatus = record.subscription_status || 'pending_activation';
+    const subscriptionPlan = record.subscription_plan || null;
+    const subscriptionStartedAt = record.subscription_started_at || null;
+    const subscriptionExpiresAt = record.subscription_expires_at || null;
+    const activatedAt = record.activated_at || null;
+
+    return {
+      owner_id: record.owner_id,
+      name: record.name,
+      slug: record.slug || Stores.normalizeSlug(record.name || ''),
+      whatsapp: record.whatsapp || null,
+      subscription_status: subscriptionStatus,
+      subscription_plan: subscriptionPlan,
+      subscription_started_at: subscriptionStartedAt,
+      subscription_expires_at: subscriptionExpiresAt,
+      trial_started_at: record.trial_started_at || null,
+      trial_ends_at: record.trial_ends_at || null,
+      activated_at: activatedAt,
+    };
+  },
+
+  getAccessState(store) {
+    const record = Stores.normalizeStoreRecord(store);
+    if (!record?.slug) {
+      return {
+        active: false,
+        state: 'setup',
+        label: 'Store setup needed',
+        message: 'Complete your store details before sharing your storefront.',
+      };
+    }
+
+    const daysLeft = computeDaysLeft(record.subscription_expires_at);
+
+    if (record.subscription_status === 'paused') {
+      return {
+        active: false,
+        state: 'paused',
+        label: 'Store paused',
+        message: 'Your storefront is paused until Vendly reactivates it.',
+      };
+    }
+
+    if (record.subscription_status === 'active' && record.subscription_expires_at && daysLeft > 0) {
+      const planLabel = record.subscription_plan === 'yearly' ? 'Yearly' : 'Monthly';
+      return {
+        active: true,
+        state: 'active',
+        label: `${planLabel} plan active`,
+        message: `Your storefront is live. ${daysLeft} day${daysLeft === 1 ? '' : 's'} left until ${formatAccessDate(record.subscription_expires_at)}.`,
+      };
+    }
+
+    if (record.subscription_status === 'active' && record.subscription_expires_at && daysLeft <= 0) {
+      return {
+        active: false,
+        state: 'expired',
+        label: 'Subscription expired',
+        message: `Your subscription expired on ${formatAccessDate(record.subscription_expires_at)}. Renew it to keep receiving orders.`,
+      };
+    }
+
+    return {
+      active: false,
+      state: record.subscription_status === 'expired' ? 'expired' : 'inactive',
+      label: record.subscription_status === 'expired' ? 'Subscription expired' : 'Activation needed',
+      message: record.subscription_status === 'expired'
+        ? `Your subscription has ended${record.subscription_expires_at ? ` on ${formatAccessDate(record.subscription_expires_at)}` : ''}. Renew it to keep your storefront live.`
+        : 'Activate your store to make your storefront live and start receiving orders.',
+    };
+  },
+
+  async upsertStore(client, payload) {
+    if (!client) return null;
+
+    const record = Stores.buildStorePayload(payload);
+    if (!record?.owner_id || !record?.slug || !record?.name) return null;
+
+    const writeStore = async onConflict => client
+      .from('stores')
+      .upsert([record], { onConflict })
+      .select(Stores.STORE_SELECT)
+      .maybeSingle();
+
+    let response = await writeStore('owner_id');
+    if (response.error && /unique|constraint/i.test(response.error.message || '')) {
+      response = await writeStore('slug');
+    }
+
+    if (response.error) throw response.error;
+    return Stores.normalizeStoreRecord(response.data || record);
+  },
+};
+
 const Auth = {
   isLoggedIn() {
-    return !!Auth.getUser()?.id;
+    return sessionState.confirmed && !!safeParseStoredUser()?.id;
+  },
+
+  isAdmin() {
+    return !!safeParseStoredUser()?.isAdmin;
+  },
+
+  hasConfirmedSession() {
+    return sessionState.confirmed;
   },
 
   async getClient() {
@@ -47,14 +318,23 @@ const Auth = {
     if (!user) return null;
 
     const metadata = user.user_metadata || {};
+    const fallbackStoreName = user.storeName || metadata.storeName || '';
     const enriched = {
       ...user,
       firstName: user.firstName || metadata.firstName || metadata.first_name || '',
       lastName: user.lastName || metadata.lastName || metadata.last_name || '',
-      storeName: user.storeName || metadata.storeName || '',
-      slug: user.slug || metadata.slug || '',
+      storeName: fallbackStoreName,
+      slug: Stores.normalizeSlug(user.slug || metadata.slug || fallbackStoreName || ''),
       phone: user.phone || metadata.phone || metadata.whatsapp || '',
       storeId: user.storeId || metadata.storeId || null,
+      subscription_status: normalizeStoreStatus(user.subscription_status || metadata.subscription_status),
+      subscription_plan: normalizeSubscriptionPlan(user.subscription_plan || metadata.subscription_plan),
+      subscription_started_at: normalizeIsoDate(user.subscription_started_at || metadata.subscription_started_at),
+      subscription_expires_at: normalizeIsoDate(user.subscription_expires_at || metadata.subscription_expires_at),
+      trial_started_at: normalizeIsoDate(user.trial_started_at || metadata.trial_started_at),
+      trial_ends_at: normalizeIsoDate(user.trial_ends_at || metadata.trial_ends_at),
+      activated_at: normalizeIsoDate(user.activated_at || metadata.activated_at),
+      isAdmin: false,
     };
 
     const client = await Auth.getClient().catch(() => null);
@@ -62,7 +342,7 @@ const Auth = {
       try {
         const [{ data: profile }, { data: store }] = await Promise.all([
           client.from('profiles').select('first_name, last_name').eq('id', enriched.id).maybeSingle(),
-          client.from('stores').select('id, name, slug, whatsapp').eq('owner_id', enriched.id).maybeSingle()
+          client.from('stores').select(Stores.STORE_SELECT).eq('owner_id', enriched.id).maybeSingle(),
         ]);
 
         if (profile) {
@@ -70,11 +350,30 @@ const Auth = {
           enriched.lastName = profile.last_name || enriched.lastName;
         }
 
-        if (store) {
-          enriched.storeId = store.id;
-          enriched.storeName = store.name || enriched.storeName;
-          enriched.slug = store.slug || enriched.slug;
-          enriched.phone = store.whatsapp || enriched.phone;
+        let normalizedStore = Stores.normalizeStoreRecord(store);
+
+        const needsStore = !normalizedStore && enriched.storeName && enriched.slug;
+        if (needsStore) {
+          normalizedStore = await Stores.upsertStore(client, {
+            owner_id: enriched.id,
+            name: enriched.storeName,
+            slug: enriched.slug,
+            whatsapp: enriched.phone || null,
+          });
+        }
+
+        if (normalizedStore) {
+          enriched.storeId = normalizedStore.id || enriched.storeId;
+          enriched.storeName = normalizedStore.name || enriched.storeName;
+          enriched.slug = normalizedStore.slug || enriched.slug;
+          enriched.phone = normalizedStore.whatsapp || enriched.phone;
+          enriched.subscription_status = normalizedStore.subscription_status;
+          enriched.subscription_plan = normalizedStore.subscription_plan;
+          enriched.subscription_started_at = normalizedStore.subscription_started_at;
+          enriched.subscription_expires_at = normalizedStore.subscription_expires_at;
+          enriched.trial_started_at = normalizedStore.trial_started_at;
+          enriched.trial_ends_at = normalizedStore.trial_ends_at;
+          enriched.activated_at = normalizedStore.activated_at;
         }
 
         const needsProfile = !profile && (enriched.firstName || enriched.lastName);
@@ -85,25 +384,17 @@ const Auth = {
             last_name: enriched.lastName || null,
           }], { onConflict: 'id' });
         }
-
-        const needsStore = !store && enriched.storeName && enriched.slug;
-        if (needsStore) {
-          const { data: insertedStore } = await client.from('stores').upsert([{
-            owner_id: enriched.id,
-            name: enriched.storeName,
-            slug: enriched.slug,
-            whatsapp: enriched.phone || null,
-          }], { onConflict: 'slug' }).select('id, name, slug, whatsapp').maybeSingle();
-
-          if (insertedStore) {
-            enriched.storeId = insertedStore.id;
-            enriched.storeName = insertedStore.name || enriched.storeName;
-            enriched.slug = insertedStore.slug || enriched.slug;
-            enriched.phone = insertedStore.whatsapp || enriched.phone;
-          }
-        }
       } catch (err) {
         console.warn('Could not enrich user context', err.message || err);
+      }
+
+      // Role lookup: admins should be kept inside the admin portal only.
+      try {
+        const { data: isAdmin } = await client.rpc('is_admin');
+        enriched.isAdmin = !!isAdmin;
+      } catch (err) {
+        enriched.isAdmin = false;
+        console.warn('Could not determine admin status', err?.message || err);
       }
     }
 
@@ -114,22 +405,32 @@ const Auth = {
 
     enriched.displayName = displayName;
     enriched.initials = buildInitials(displayName);
+    enriched.storeLink = Stores.buildDisplayStoreLink(enriched.slug);
+    enriched.subscription_days_left = computeDaysLeft(enriched.subscription_expires_at);
+    enriched.isAdmin = !!enriched.isAdmin;
     return enriched;
   },
 
   async restoreSession() {
     const client = await Auth.getClient().catch(() => null);
-    if (!client) return false;
+    sessionState.checked = true;
+
+    if (!client) {
+      sessionState.confirmed = false;
+      return false;
+    }
 
     try {
       const { data, error } = await client.auth.getSession();
       if (error) {
+        sessionState.confirmed = false;
         console.warn('Supabase session restore failed', error.message);
         return false;
       }
 
       const user = data?.session?.user;
       if (!user) {
+        sessionState.confirmed = false;
         localStorage.removeItem('vendly_user');
         return false;
       }
@@ -137,6 +438,7 @@ const Auth = {
       await Auth.setUser(user);
       return true;
     } catch (err) {
+      sessionState.confirmed = false;
       console.warn('Supabase session restore error', err);
       return false;
     }
@@ -144,12 +446,22 @@ const Auth = {
 
   async setUser(user) {
     const enriched = await Auth.enrichUser(user);
+    if (!enriched) {
+      sessionState.confirmed = false;
+      localStorage.removeItem('vendly_user');
+      return null;
+    }
+
+    sessionState.checked = true;
+    sessionState.confirmed = true;
     localStorage.setItem('vendly_user', JSON.stringify(enriched));
     return enriched;
   },
 
   async refreshUser() {
-    const current = Auth.getUser();
+    if (!sessionState.confirmed) return null;
+
+    const current = safeParseStoredUser();
     if (!current?.id) return null;
     return Auth.setUser(current);
   },
@@ -160,13 +472,20 @@ const Auth = {
       try {
         await client.auth.signOut();
       } catch (_err) {
-        // ignore sign-out failures
+        // Ignore sign-out failures.
       }
     }
+
+    sessionState.checked = true;
+    sessionState.confirmed = false;
     localStorage.removeItem('vendly_user');
   },
 
   getUser() {
+    return sessionState.confirmed ? safeParseStoredUser() : null;
+  },
+
+  getCachedUser() {
     return safeParseStoredUser();
   },
 };
@@ -178,11 +497,13 @@ const Nav = {
       console.warn(`Vendly Nav: unknown page "${page}"`);
       return;
     }
+    Loading.show();
     window.location.href = path;
   },
 
   back(fallbackPage = 'landing') {
     if (document.referrer) {
+      Loading.show();
       history.back();
     } else {
       Nav.go(fallbackPage);
@@ -195,20 +516,38 @@ const Nav = {
   },
 };
 
-const PROTECTED = ['dashboard'];
-const AUTH_ONLY = ['login', 'signup'];
+const PROTECTED = ['dashboard', 'products', 'orders', 'analytics', 'account', 'activate', 'referral', 'admin', 'adminWithdrawals', 'adminCodes', 'adminAccounts'];
+const AUTH_ONLY = ['login', 'signup', 'adminLogin'];
+const ADMIN_ONLY = ['admin', 'adminWithdrawals', 'adminCodes', 'adminAccounts'];
+const VENDOR_ONLY = ['dashboard', 'products', 'orders', 'analytics', 'account', 'activate', 'referral'];
 
-function runGuards() {
+async function runGuards() {
   const page = Nav.current();
   if (!page) return;
 
   if (PROTECTED.includes(page) && !Auth.isLoggedIn()) {
-    Nav.go('login');
+    Nav.go(ADMIN_ONLY.includes(page) ? 'adminLogin' : 'login');
     return;
   }
 
   if (AUTH_ONLY.includes(page) && Auth.isLoggedIn()) {
-    Nav.go('dashboard');
+    Nav.go(Auth.isAdmin() ? 'admin' : 'dashboard');
+    return;
+  }
+
+  if (Auth.isLoggedIn()) {
+    const user = Auth.getUser() || Auth.getCachedUser();
+    const isAdmin = !!user?.isAdmin;
+
+    if (ADMIN_ONLY.includes(page) && !isAdmin) {
+      Nav.go('dashboard');
+      return;
+    }
+
+    if (VENDOR_ONLY.includes(page) && isAdmin) {
+      Nav.go('admin');
+      return;
+    }
   }
 }
 
@@ -221,6 +560,33 @@ function wireNavAttributes() {
   });
 }
 
+function wirePageLoader() {
+  Loading.ensure();
+
+  // Hide loader whenever the browser completes navigation (including bfcache restores).
+  window.addEventListener('pageshow', () => Loading.hide());
+  window.addEventListener('load', () => Loading.hide());
+
+  // Show loader on same-origin page navigations triggered by links.
+  document.addEventListener('click', e => {
+    const anchor = e.target?.closest ? e.target.closest('a[href]') : null;
+    if (!anchor) return;
+
+    const href = anchor.getAttribute('href') || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (anchor.hasAttribute('download') || anchor.target === '_blank') return;
+
+    try {
+      const url = new URL(href, window.location.href);
+      if (url.origin !== window.location.origin) return;
+    } catch (_err) {
+      return;
+    }
+
+    Loading.show();
+  }, { capture: true });
+}
+
 function wireLogout() {
   document.querySelectorAll('[data-logout]').forEach(el => {
     el.addEventListener('click', async () => {
@@ -231,11 +597,13 @@ function wireLogout() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  wirePageLoader();
   await Auth.restoreSession();
-  runGuards();
+  await runGuards();
   wireNavAttributes();
   wireLogout();
 });
 
 window.VendlyNav = Nav;
 window.VendlyAuth = Auth;
+window.VendlyStores = Stores;

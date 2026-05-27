@@ -131,6 +131,7 @@
             padding: 130px 80px 80px;
             gap: 60px;
             position: relative;
+            caret-color: transparent;
         }
 
         .hero::before {
@@ -225,9 +226,9 @@
 
         .trust-avatar:first-child { margin-left: 0; }
         .ta1 { background: #16a34a; }
-        .ta2 { background: #0891b2; }
-        .ta3 { background: #7c3aed; }
-        .ta4 { background: #dc2626; }
+        .ta2 { background: #16a34a; opacity: 0.88; }
+        .ta3 { background: #16a34a; opacity: 0.78; }
+        .ta4 { background: #16a34a; opacity: 0.68; }
 
         .trust-text { font-size: 0.85rem; color: var(--grey-mid); }
         .trust-text strong { color: var(--black); }
@@ -247,7 +248,7 @@
             background: var(--white);
             border-radius: 42px;
             border: 8px solid #111;
-            box-shadow: 0 48px 96px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06), inset 0 0 0 1px rgba(255,255,255,0.05);
+            box-shadow: 0 22px 44px rgba(0,0,0,0.14), 0 0 0 1px rgba(0,0,0,0.06);
             overflow: hidden;
             position: relative;
         }
@@ -263,7 +264,7 @@
         .phone-screen {
             height: calc(100% - 26px);
             overflow-y: auto;
-            background: #f6f6f6;
+            background: #f6faf6;
             scrollbar-width: none;
         }
 
@@ -328,10 +329,10 @@
             font-size: 1.6rem;
         }
 
-        .p1 { background: #fef3c7; }
-        .p2 { background: #dbeafe; }
-        .p3 { background: #fce7f3; }
-        .p4 { background: #d1fae5; }
+        .p1 { background: #dcfce7; }
+        .p2 { background: #f1fdf4; }
+        .p3 { background: #dcfce7; }
+        .p4 { background: #f1fdf4; }
 
         .product-info { padding: 6px 8px; }
 
@@ -919,10 +920,10 @@
         </div>
         <div class="hero-trust">
             <div class="trust-avatars">
-                <div class="trust-avatar ta1">AO</div>
-                <div class="trust-avatar ta2">CK</div>
-                <div class="trust-avatar ta3">FS</div>
-                <div class="trust-avatar ta4">NK</div>
+                <div class="trust-avatar ta1">VS</div>
+                <div class="trust-avatar ta2">ML</div>
+                <div class="trust-avatar ta3">RT</div>
+                <div class="trust-avatar ta4">ON</div>
             </div>
             <div class="trust-text"><strong>Easy to start</strong> — no card needed</div>
         </div>
@@ -938,7 +939,7 @@
             </div>
             <div>
                 <div class="float-label">New order received</div>
-                <div class="float-value">₦18,300</div>
+                <div class="float-value">NGN 18,300</div>
             </div>
         </div>
 
@@ -946,8 +947,8 @@
             <div class="phone-notch"></div>
             <div class="phone-screen">
                 <div class="store-header">
-                    <div class="store-header-name">Amaka's Boutique</div>
-                    <div class="store-header-tag">vendly.com/amaka</div>
+                    <div class="store-header-name">Storefront preview</div>
+                    <div class="store-header-tag">Store link appears here</div>
                 </div>
                 <div class="store-search">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -959,61 +960,41 @@
                 <div class="store-section-title">Featured Items</div>
                 <div class="product-grid">
                     <div class="product-card">
-                        <div class="product-img p1">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M7 3h10l-2 6v12h-6V9L7 3z" />
-                                <path d="M7 3l5 4 5-4" />
-                            </svg>
-                        </div>
+                        <div class="product-img p1">🧺</div>
                         <div class="product-info">
-                            <div class="product-name">Ankara Dress</div>
-                            <div class="product-price">₦6,500</div>
+                            <div class="product-name">New arrival</div>
+                            <div class="product-price">NGN 0</div>
                         </div>
-                        <button class="add-btn">+ Add to order</button>
+                        <button class="add-btn" type="button">Add</button>
                     </div>
                     <div class="product-card">
-                        <div class="product-img p2">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M2 16h20l-3 4H6l-4-4z" />
-                                <path d="M6 16l2-6 3 1 3-1 3 6" />
-                            </svg>
-                        </div>
+                        <div class="product-img p2">👕</div>
                         <div class="product-info">
-                            <div class="product-name">Canvas Sneakers</div>
-                            <div class="product-price">₦3,800</div>
+                            <div class="product-name">Best seller</div>
+                            <div class="product-price">NGN 0</div>
                         </div>
-                        <button class="add-btn">+ Add to order</button>
+                        <button class="add-btn" type="button">Add</button>
                     </div>
                     <div class="product-card">
-                        <div class="product-img p3">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6 7h12l1 13H5L6 7z" />
-                                <path d="M9 7V5a3 3 0 0 1 6 0v2" />
-                            </svg>
-                        </div>
+                        <div class="product-img p3">👟</div>
                         <div class="product-info">
-                            <div class="product-name">Mini Handbag</div>
-                            <div class="product-price">₦4,200</div>
+                            <div class="product-name">Limited stock</div>
+                            <div class="product-price">NGN 0</div>
                         </div>
-                        <button class="add-btn">+ Add to order</button>
+                        <button class="add-btn" type="button">Add</button>
                     </div>
                     <div class="product-card">
-                        <div class="product-img p4">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 22l7-13L12 2 5 9l7 13z" />
-                                <path d="M9 9h6" />
-                            </svg>
-                        </div>
+                        <div class="product-img p4">👜</div>
                         <div class="product-info">
-                            <div class="product-name">Gold Necklace</div>
-                            <div class="product-price">₦2,100</div>
+                            <div class="product-name">Trending</div>
+                            <div class="product-price">NGN 0</div>
                         </div>
-                        <button class="add-btn">+ Add to order</button>
+                        <button class="add-btn" type="button">Add</button>
                     </div>
                 </div>
                 <div class="order-bar">
                     <div>
-                        <div class="order-bar-count">3 items · ₦14,500</div>
+                        <div class="order-bar-count">3 items - NGN 14,500</div>
                         <div class="order-bar-sub">Tap to send via WhatsApp</div>
                     </div>
                     <button class="whatsapp-btn">
@@ -1057,7 +1038,7 @@
                 <div class="step-num-badge">1</div>
             </div>
             <div class="step-title">Create your store</div>
-            <p class="step-desc">Sign up with your email, choose your store name, and you have a live link — vendly.com/yourname. Takes less than 2 minutes. No setup, no tech knowledge required.</p>
+            <p class="step-desc">Sign up with your email, choose your store name, and your store link is ready in minutes. No setup, no tech knowledge required.</p>
         </div>
         <div class="step-card fade-up delay-1">
             <div class="step-number">
@@ -1107,16 +1088,11 @@
             <div>
                 <div class="wa-preview">
                     <div class="wa-bubble">
-                        <div class="wa-title">New Order — Amaka's Boutique</div>
-                        <div class="wa-from">vendly.com/amaka</div>
-                        <div class="wa-line"><span>Ankara Dress × 1</span><span>₦6,500</span></div>
-                        <div class="wa-line"><span>Canvas Sneakers × 2</span><span>₦7,600</span></div>
-                        <div class="wa-line"><span>Mini Handbag × 1</span><span>₦4,200</span></div>
-                        <div class="wa-total"><span>Total</span><span>₦18,300</span></div>
-                        <div class="wa-time">12:34 PM · Delivered</div>
-                    </div>
-                </div>
-            </div>
+                        <div class="wa-title">New Order - Storefront</div>
+                        <div class="wa-from">Store link appears here</div>
+                        <div class="wa-line"><span>Selected item x 1</span><span>NGN 0</span></div>
+                        <div class="wa-total"><span>Total</span><span>NGN 0</span></div>
+                        <div class="wa-time">12:34 PM - Delivered</div>
         </div>
 
         <div class="feature-card fade-up">
@@ -1225,3 +1201,5 @@
 
 </body>
 </html>
+
+

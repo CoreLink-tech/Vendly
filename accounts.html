@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vendly Dashboard</title>
+  <title>Vendly Account</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
   <script src="vendly-nav.js"></script>
   <script src="vendor-portal.js"></script>
 </head>
-<body data-page="dashboard">
+<body data-page="account">
   <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Close menu"></button>
 
   <div class="portal-shell">
@@ -50,14 +50,14 @@
         <div class="topbar-left">
           <button class="ghost-icon-btn mobile-toggle" id="sidebarToggle" type="button" aria-label="Open menu"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
           <div>
-            <div class="page-eyebrow" id="pageEyebrow">Vendor portal</div>
-            <h1 class="page-title" id="pageTitle">Dashboard</h1>
-            <p class="page-subtitle" id="pageSubtitle">See your store performance, link status, and the next actions that matter.</p>
+            <div class="page-eyebrow" id="pageEyebrow">Store settings</div>
+            <h1 class="page-title" id="pageTitle">Account</h1>
+            <p class="page-subtitle" id="pageSubtitle">Update seller details, review subscription status, and manage your store access.</p>
           </div>
         </div>
         <div class="topbar-actions">
           <a class="btn btn-outline" id="viewStorefrontBtn" href="#" target="_blank" rel="noopener">View storefront</a>
-          <a class="btn btn-primary" id="topbarPrimaryBtn" href="produc.html">Manage products</a>
+          <a class="btn btn-primary" id="topbarPrimaryBtn" href="activate.html">Activate store</a>
         </div>
       </header>
 
@@ -68,7 +68,7 @@
             <div>
               <div class="banner-label">Your store link</div>
               <div class="banner-link" id="storeBannerLink">Generating store link...</div>
-              <div class="banner-meta" id="storeBannerMeta">Your public storefront link will appear here.</div>
+              <div class="banner-meta" id="storeBannerMeta">Store details are saved here and reflected everywhere the seller account is used.</div>
             </div>
           </div>
           <div class="store-banner-actions">
@@ -81,48 +81,80 @@
         <div class="alert-strip" id="activationAlert" style="display:none;"></div>
 
         <div class="page-grid">
-          <div class="stats-grid" id="dashboardStats"></div>
+          <div class="stats-grid" id="accountStats"></div>
 
-          <section class="panel">
-            <div class="panel-header">
-              <div>
-                <h2 class="panel-title">Quick actions</h2>
-                <div class="panel-subtitle">Jump straight into the areas that need attention today.</div>
-              </div>
-            </div>
-            <div class="quick-link-grid" id="quickLinks"></div>
-          </section>
-
-          <div class="two-col">
+          <div class="account-layout">
             <section class="panel">
               <div class="panel-header">
                 <div>
-                  <h2 class="panel-title">Store health</h2>
-                  <div class="panel-subtitle">Your current access state, revenue snapshot, and key reminders.</div>
+                  <h2 class="panel-title">Seller details</h2>
+                  <div class="panel-subtitle">Update the information customers and your team depend on.</div>
                 </div>
               </div>
-              <div id="dashboardStoreHealth"></div>
+              <form id="accountForm" class="form-grid">
+                <div class="form-grid two">
+                  <div class="field">
+                    <label for="accountFirstName">First name</label>
+                    <input id="accountFirstName" type="text" placeholder="First name">
+                  </div>
+                  <div class="field">
+                    <label for="accountLastName">Last name</label>
+                    <input id="accountLastName" type="text" placeholder="Last name">
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="accountEmail">Email address</label>
+                  <input id="accountEmail" type="email" readonly>
+                  <div class="field-hint">Email is managed through your login account.</div>
+                </div>
+                <div class="form-grid two">
+                  <div class="field">
+                    <label for="accountStoreName">Store name</label>
+                    <input id="accountStoreName" type="text" placeholder="Store name">
+                  </div>
+                  <div class="field">
+                    <label for="accountWhatsapp">WhatsApp number</label>
+                    <input id="accountWhatsapp" type="tel" placeholder="08000000000">
+                  </div>
+                </div>
+                <div class="form-grid two">
+                  <div class="field">
+                    <label for="accountSlug">Store slug</label>
+                    <input id="accountSlug" type="text" readonly>
+                    <div class="field-hint">Store links stay fixed once created.</div>
+                  </div>
+                  <div class="field">
+                    <label for="accountStoreLink">Public store link</label>
+                    <input id="accountStoreLink" type="text" readonly>
+                  </div>
+                </div>
+                <div class="panel-actions">
+                  <button class="btn btn-primary" type="submit">Save changes</button>
+                </div>
+              </form>
             </section>
 
             <section class="panel">
               <div class="panel-header">
                 <div>
-                  <h2 class="panel-title">Recent products</h2>
-                  <div class="panel-subtitle">The latest items currently attached to your store.</div>
+                  <h2 class="panel-title">Access and billing</h2>
+                  <div class="panel-subtitle">Check whether your subscription is active, when it expires, and whether the store needs renewal.</div>
                 </div>
               </div>
-              <div id="dashboardProducts"></div>
+              <div id="accountStatusBox"></div>
             </section>
           </div>
 
-          <section class="panel">
+          <section class="panel danger-panel">
             <div class="panel-header">
               <div>
-                <h2 class="panel-title">Recent orders</h2>
-                <div class="panel-subtitle">Orders placed through the storefront will show up here for follow-up.</div>
+                <h2 class="panel-title">Danger zone</h2>
+                <div class="panel-subtitle">Deleting the account removes your login, storefront, products, orders, and analytics history.</div>
               </div>
             </div>
-            <div id="dashboardOrders"></div>
+            <div class="panel-actions">
+              <button class="btn btn-light-danger" id="deleteAccountBtn" type="button">Delete my account</button>
+            </div>
           </section>
         </div>
       </div>

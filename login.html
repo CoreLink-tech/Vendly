@@ -557,26 +557,26 @@
 
     <div class="panel-body">
       <h2 class="panel-headline">Your store.<br/><em>Always open.</em></h2>
-      <p class="panel-sub">Log back in and see what's been added, update your products, and keep customers coming back — all without leaving WhatsApp.</p>
+      <p class="panel-sub">Log back in and see what's been added, update your products, and keep customers coming back - all without leaving WhatsApp.</p>
 
       <div class="preview-card">
         <div class="preview-card-top">
-          <div class="preview-avatar">A</div>
+          <div class="preview-avatar">S</div>
           <div class="preview-info">
-            <strong>Amaka's Boutique</strong>
-            <span>vendly.com/amaka</span>
+            <strong>Storefront</strong>
+            <span>Store link appears here</span>
           </div>
         </div>
         <div class="preview-stats">
-          <div class="preview-stat"><strong>24</strong><span>Products</span></div>
-          <div class="preview-stat"><strong>138</strong><span>Orders</span></div>
-          <div class="preview-stat"><strong>4.9</strong><span>Rating</span></div>
+          <div class="preview-stat"><strong>-</strong><span>Products</span></div>
+          <div class="preview-stat"><strong>-</strong><span>Orders</span></div>
+          <div class="preview-stat"><strong>-</strong><span>Store health</span></div>
         </div>
       </div>
     </div>
 
     <div class="panel-footer">
-      <p>© 2025 Vendly · Made for Nigerian sellers</p>
+      <p>(c) 2025 Vendly - Made for Nigerian sellers</p>
     </div>
   </aside>
 
@@ -667,7 +667,6 @@
       <div class="signup-prompt">
         New to Vendly? <a href="#" data-nav="signup">Create your free store</a>
       </div>
-
     </div>
   </main>
 </div>
@@ -792,9 +791,9 @@
       if (error) throw error;
       const user = data?.user || data;
       if (!user) throw new Error('No user returned');
-      await VendlyAuth.setUser(user);
+      const enrichedUser = await VendlyAuth.setUser(user);
       showToast('Login successful — redirecting…');
-      setTimeout(() => VendlyNav.go('dashboard'), 900);
+      setTimeout(() => VendlyNav.go(enrichedUser?.isAdmin ? 'admin' : 'dashboard'), 900);
     } catch (err) {
       showToast(err.message || 'Login failed', 'error');
     } finally {
@@ -809,3 +808,4 @@
 </script>
 </body>
 </html>
+

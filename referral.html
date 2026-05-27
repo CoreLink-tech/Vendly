@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vendly — Refer & Earn</title>
+    <title>Vendly - Refer & Earn</title>
+    <script src="supabase.js"></script>
     <script src="vendly-nav.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,7 +31,7 @@
 
         body {
             font-family: var(--font-body);
-            background: var(--grey-pale);
+            background: var(--green-pale);
             color: var(--black);
             min-height: 100vh;
             display: flex;
@@ -151,8 +152,7 @@
         .topbar {
             position: sticky;
             top: 0;
-            background: rgba(249,250,251,0.92);
-            backdrop-filter: blur(10px);
+            background: var(--white);
             border-bottom: 1px solid var(--grey-light);
             padding: 0 36px;
             height: 64px;
@@ -184,7 +184,8 @@
 
         /* ── BALANCE HERO ── */
         .balance-hero {
-            background: var(--black);
+            background: var(--white);
+            border: 1.5px solid var(--grey-light);
             border-radius: 20px;
             padding: 32px 36px;
             margin-bottom: 24px;
@@ -197,17 +198,12 @@
         }
 
         .balance-hero::before {
-            content: '';
-            position: absolute;
-            top: -100px; right: -100px;
-            width: 320px; height: 320px;
-            background: radial-gradient(circle, rgba(22,163,74,0.15) 0%, transparent 65%);
-            pointer-events: none;
+            content: none;
         }
 
         .balance-label {
             font-size: 0.75rem;
-            color: rgba(255,255,255,0.4);
+            color: var(--grey-mid);
             font-weight: 500;
             letter-spacing: 0.05em;
             margin-bottom: 8px;
@@ -218,14 +214,14 @@
         .balance-amount {
             font-family: var(--font-display);
             font-size: clamp(2.2rem, 5vw, 3.4rem);
-            color: var(--white);
+            color: var(--black);
             letter-spacing: -0.03em;
             line-height: 1;
             margin-bottom: 8px;
             position: relative; z-index: 1;
         }
 
-        .balance-amount span { color: #86efac; }
+        .balance-amount span { color: var(--green); }
 
         .balance-meta {
             display: flex;
@@ -239,10 +235,10 @@
             align-items: center;
             gap: 6px;
             font-size: 0.75rem;
-            color: rgba(255,255,255,0.38);
+            color: var(--grey-mid);
         }
 
-        .balance-meta-item strong { color: rgba(255,255,255,0.7); font-weight: 600; }
+        .balance-meta-item strong { color: var(--black); font-weight: 600; }
 
         .withdraw-btn {
             display: flex;
@@ -264,8 +260,8 @@
 
         .withdraw-btn:hover {
             background: var(--green-dark);
-            box-shadow: 0 6px 20px rgba(22,163,74,0.3);
-            transform: translateY(-1px);
+            box-shadow: none;
+            transform: none;
         }
 
         .withdraw-btn:disabled {
@@ -294,7 +290,7 @@
 
         .stat-card:hover {
             border-color: var(--green-light);
-            box-shadow: 0 4px 20px rgba(22,163,74,0.07);
+            box-shadow: none;
         }
 
         .stat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
@@ -384,7 +380,7 @@
             align-items: center;
             gap: 6px;
             padding: 8px 14px;
-            background: var(--black);
+            background: var(--green);
             color: white;
             border: none;
             border-radius: 8px;
@@ -397,7 +393,7 @@
             flex-shrink: 0;
         }
 
-        .copy-btn:hover { background: var(--grey-dark); }
+        .copy-btn:hover { background: var(--green-dark); }
         .copy-btn.copied { background: var(--green); }
 
         /* Share row */
@@ -694,10 +690,10 @@
     </nav>
     <div class="sidebar-footer">
         <div class="user-card">
-            <div class="user-avatar">AD</div>
+            <div class="user-avatar" id="refUserAvatar">VD</div>
             <div style="flex:1">
-                <div class="user-name">Amaka David</div>
-                <div class="user-store">vendly.com/amaka</div>
+                <div class="user-name" id="refUserName">Vendor account</div>
+                <div class="user-store" id="refUserStoreLink">Store link appears here</div>
             </div>
             <button data-logout title="Log out" style="background:none;border:none;cursor:pointer;padding:6px;border-radius:7px;color:var(--grey-mid);display:flex;align-items:center;transition:all 0.18s;" onmouseover="this.style.background='var(--grey-light)';this.style.color='var(--black)'" onmouseout="this.style.background='none';this.style.color='var(--grey-mid)'">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -729,15 +725,15 @@
         <div class="balance-hero">
             <div>
                 <div class="balance-label">Available balance</div>
-                <div class="balance-amount">₦<span id="balanceDisplay">3,000</span></div>
+                <div class="balance-amount">NGN <span id="balanceDisplay">0</span></div>
                 <div class="balance-meta">
                     <div class="balance-meta-item">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-                        <span><strong id="totalReferrals">3</strong> referrals</span>
+                        <span><strong id="totalReferrals">0</strong> referrals</span>
                     </div>
                     <div class="balance-meta-item">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-                        <span>Total earned: <strong id="totalEarned">₦3,000</strong></span>
+                        <span>Total earned: <strong id="totalEarned">NGN 0</strong></span>
                     </div>
                 </div>
             </div>
@@ -763,7 +759,7 @@
                         </svg>
                     </div>
                 </div>
-                <div class="stat-value" id="statReferrals">3</div>
+                <div class="stat-value" id="statReferrals">0</div>
                 <div class="stat-sub">people signed up with your code</div>
             </div>
             <div class="stat-card">
@@ -775,8 +771,8 @@
                         </svg>
                     </div>
                 </div>
-                <div class="stat-value">₦3,000</div>
-                <div class="stat-sub"><strong>₦1,000</strong> per signup</div>
+                <div class="stat-value" id="statTotalEarned">NGN 0</div>
+                <div class="stat-sub"><strong>NGN 1,000</strong> per signup</div>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
@@ -787,8 +783,8 @@
                         </svg>
                     </div>
                 </div>
-                <div class="stat-value">₦0</div>
-                <div class="stat-sub">no withdrawals yet</div>
+                <div class="stat-value" id="statWithdrawn">NGN 0</div>
+                <div class="stat-sub" id="withdrawalSub">no withdrawals yet</div>
             </div>
         </div>
 
@@ -806,7 +802,7 @@
             </div>
 
             <div class="ref-link-box">
-                <div class="ref-link-text">vendly.com/signup?ref=<span id="refCode">AMAKA7X</span></div>
+                <div class="ref-link-text" id="refLinkText">vendly-snowy.vercel.app/signup.html?ref=<span id="refCode">LOADING</span></div>
                 <button class="copy-btn" id="copyLinkBtn" onclick="copyRefLink()">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="9" y="9" width="13" height="13" rx="2"/>
@@ -837,7 +833,7 @@
         <div class="section-card">
             <div class="section-card-header">
                 <div class="section-card-title">People you referred</div>
-                <div class="section-card-count" id="refTableCount">3 signups</div>
+                <div class="section-card-count" id="refTableCount">0 signups</div>
             </div>
             <div id="refTableBody">
                 <table>
@@ -859,9 +855,9 @@
         <div class="section-card">
             <div class="section-card-header">
                 <div class="section-card-title">Withdrawal history</div>
-                <div class="section-card-count">No withdrawals yet</div>
+                <div class="section-card-count" id="withdrawalHistoryCount">No withdrawals yet</div>
             </div>
-            <div class="table-empty">
+            <div id="withdrawalHistoryBody" class="table-empty">
                 <div class="table-icon" style="width:48px;height:48px;border-radius:14px;background:var(--green-pale);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:var(--green);">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -891,7 +887,7 @@
 
         <div class="amount-display">
             <div class="amount-label">Amount to withdraw</div>
-            <div class="amount-value" id="modalBalance">₦3,000</div>
+            <div class="amount-value" id="modalBalance">NGN 0</div>
         </div>
 
         <div class="field-group">
@@ -928,144 +924,9 @@
     <span id="toastMsg">Done</span>
 </div>
 
-<script>
-    // ── STATE ──
-    const VENDLY_WHATSAPP = '2349168311809';
-    const REF_CODE = 'AMAKA7X';
-    const REF_LINK = `https://vendly.com/signup?ref=${REF_CODE}`;
-    let balance = 3000;
+<script src="referral-portal.js"></script>
 
-    // Demo referral data — comes from Supabase in production
-    const referrals = [
-        { name: 'Chioma Eze',   store: 'chioma-fashion', date: '12 May 2026', status: 'active',  earned: 1000 },
-        { name: 'Kola Bello',   store: 'kolabello',      date: '18 May 2026', status: 'active',  earned: 1000 },
-        { name: 'Ngozi Adaeze', store: 'ngozi-store',    date: '22 May 2026', status: 'pending', earned: 1000 },
-    ];
-
-    // ── RENDER REFERRALS ──
-    function renderReferrals() {
-        const tbody = document.getElementById('refRows');
-        if (!referrals.length) {
-            document.getElementById('refTableBody').innerHTML = `
-                <div class="table-empty">
-                    <div class="table-icon" style="width:48px;height:48px;border-radius:14px;background:var(--green-pale);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:var(--green);">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-                    </div>
-                    No one has used your referral link yet. Start sharing!
-                </div>`;
-            return;
-        }
-
-        tbody.innerHTML = referrals.map(r => `
-            <tr>
-                <td><strong style="color:var(--black)">${r.name}</strong></td>
-                <td style="color:var(--grey-mid)">vendly.com/${r.store}</td>
-                <td style="color:var(--grey-mid)">${r.date}</td>
-                <td>
-                    <span class="badge ${r.status === 'active' ? 'badge-green' : 'badge-amber'}">
-                        ${r.status === 'active' ? 'Active' : 'Pending'}
-                    </span>
-                </td>
-                <td><strong style="color:var(--green)">₦${r.earned.toLocaleString()}</strong></td>
-            </tr>
-        `).join('');
-
-        document.getElementById('refTableCount').textContent = `${referrals.length} signup${referrals.length !== 1 ? 's' : ''}`;
-        document.getElementById('statReferrals').textContent = referrals.length;
-        document.getElementById('totalReferrals').textContent = referrals.length;
-    }
-
-    // ── COPY ──
-    function copyRefLink() {
-        navigator.clipboard.writeText(REF_LINK).then(() => {
-            const btn = document.getElementById('copyLinkBtn');
-            btn.classList.add('copied');
-            btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
-            showToast('Referral link copied');
-            setTimeout(() => {
-                btn.classList.remove('copied');
-                btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy link`;
-            }, 2500);
-        });
-    }
-
-    function copyRefCode() {
-        navigator.clipboard.writeText(REF_CODE).then(() => {
-            showToast(`Code "${REF_CODE}" copied`);
-        });
-    }
-
-    function shareWhatsApp() {
-        const msg = `Hey! I use Vendly to run my online store and receive orders on WhatsApp. Sign up free with my link and we both earn:\n\n${REF_LINK}`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-
-    // ── WITHDRAW ──
-    function openWithdraw() {
-        if (balance < 1000) {
-            showToast('Minimum withdrawal is ₦1,000', 'error');
-            return;
-        }
-        document.getElementById('modalBalance').textContent = `₦${balance.toLocaleString()}`;
-        document.getElementById('withdrawModal').classList.add('open');
-    }
-
-    function closeWithdraw() {
-        document.getElementById('withdrawModal').classList.remove('open');
-    }
-
-    function submitWithdrawal() {
-        const bank    = document.getElementById('bankName').value.trim();
-        const acctNum = document.getElementById('accountNumber').value.trim();
-        const acctName = document.getElementById('accountName').value.trim();
-
-        if (!bank || !acctNum || !acctName) {
-            showToast('Please fill in all fields', 'error');
-            return;
-        }
-
-        if (!/^\d{10}$/.test(acctNum)) {
-            showToast('Account number must be 10 digits', 'error');
-            return;
-        }
-
-        // Build WhatsApp message to admin
-        const msg = `*Vendly Withdrawal Request*\n\nUser: Amaka David\nStore: vendly.com/amaka\nAmount: ₦${balance.toLocaleString()}\n\nBank: ${bank}\nAccount: ${acctNum}\nAccount Name: ${acctName}`;
-        const url = `https://wa.me/${VENDLY_WHATSAPP}?text=${encodeURIComponent(msg)}`;
-
-        closeWithdraw();
-        showToast('Withdrawal request sent to Vendly');
-        window.open(url, '_blank');
-    }
-
-    // ── TOAST ──
-    let toastTimer;
-    function showToast(msg, type = 'success') {
-        const toast = document.getElementById('toast');
-        const icon = document.getElementById('toastIcon');
-        document.getElementById('toastMsg').textContent = msg;
-        toast.className = `toast ${type}`;
-        icon.innerHTML = type === 'error'
-            ? `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`
-            : `<polyline points="20 6 9 17 4 12"/>`;
-        clearTimeout(toastTimer);
-        requestAnimationFrame(() => toast.classList.add('show'));
-        toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
-    }
-
-    // ── CLOSE MODAL ON OUTSIDE CLICK ──
-    document.getElementById('withdrawModal').addEventListener('click', function(e) {
-        if (e.target === this) closeWithdraw();
-    });
-
-    // ── INIT ──
-    renderReferrals();
-
-    // Disable withdraw if balance is 0
-    if (balance === 0) {
-        document.getElementById('withdrawBtn').disabled = true;
-    }
-</script>
 
 </body>
 </html>
+

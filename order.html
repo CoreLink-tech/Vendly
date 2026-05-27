@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vendly Dashboard</title>
+  <title>Vendly Orders</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
   <script src="vendly-nav.js"></script>
   <script src="vendor-portal.js"></script>
 </head>
-<body data-page="dashboard">
+<body data-page="orders">
   <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Close menu"></button>
 
   <div class="portal-shell">
@@ -50,14 +50,14 @@
         <div class="topbar-left">
           <button class="ghost-icon-btn mobile-toggle" id="sidebarToggle" type="button" aria-label="Open menu"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
           <div>
-            <div class="page-eyebrow" id="pageEyebrow">Vendor portal</div>
-            <h1 class="page-title" id="pageTitle">Dashboard</h1>
-            <p class="page-subtitle" id="pageSubtitle">See your store performance, link status, and the next actions that matter.</p>
+            <div class="page-eyebrow" id="pageEyebrow">WhatsApp orders</div>
+            <h1 class="page-title" id="pageTitle">Orders</h1>
+            <p class="page-subtitle" id="pageSubtitle">Track every order sent from your storefront and keep fulfillment organized.</p>
           </div>
         </div>
         <div class="topbar-actions">
           <a class="btn btn-outline" id="viewStorefrontBtn" href="#" target="_blank" rel="noopener">View storefront</a>
-          <a class="btn btn-primary" id="topbarPrimaryBtn" href="produc.html">Manage products</a>
+          <a class="btn btn-primary" id="topbarPrimaryBtn" href="dashboard.html">Open dashboard</a>
         </div>
       </header>
 
@@ -68,7 +68,7 @@
             <div>
               <div class="banner-label">Your store link</div>
               <div class="banner-link" id="storeBannerLink">Generating store link...</div>
-              <div class="banner-meta" id="storeBannerMeta">Your public storefront link will appear here.</div>
+              <div class="banner-meta" id="storeBannerMeta">Every order sent from the storefront is logged here for follow-up.</div>
             </div>
           </div>
           <div class="store-banner-actions">
@@ -81,48 +81,27 @@
         <div class="alert-strip" id="activationAlert" style="display:none;"></div>
 
         <div class="page-grid">
-          <div class="stats-grid" id="dashboardStats"></div>
+          <div class="stats-grid" id="ordersStats"></div>
 
           <section class="panel">
             <div class="panel-header">
               <div>
-                <h2 class="panel-title">Quick actions</h2>
-                <div class="panel-subtitle">Jump straight into the areas that need attention today.</div>
+                <h2 class="panel-title">Order log</h2>
+                <div class="panel-subtitle">Use the status actions below to keep yourself organized after a customer reaches WhatsApp.</div>
               </div>
-            </div>
-            <div class="quick-link-grid" id="quickLinks"></div>
-          </section>
-
-          <div class="two-col">
-            <section class="panel">
-              <div class="panel-header">
-                <div>
-                  <h2 class="panel-title">Store health</h2>
-                  <div class="panel-subtitle">Your current access state, revenue snapshot, and key reminders.</div>
+              <div class="panel-actions">
+                <div class="toolbar-group">
+                  <label class="pill-note" for="orderStatusFilter">Status</label>
+                  <select id="orderStatusFilter">
+                    <option value="all">All orders</option>
+                    <option value="new">New</option>
+                    <option value="fulfilled">Fulfilled</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
                 </div>
               </div>
-              <div id="dashboardStoreHealth"></div>
-            </section>
-
-            <section class="panel">
-              <div class="panel-header">
-                <div>
-                  <h2 class="panel-title">Recent products</h2>
-                  <div class="panel-subtitle">The latest items currently attached to your store.</div>
-                </div>
-              </div>
-              <div id="dashboardProducts"></div>
-            </section>
-          </div>
-
-          <section class="panel">
-            <div class="panel-header">
-              <div>
-                <h2 class="panel-title">Recent orders</h2>
-                <div class="panel-subtitle">Orders placed through the storefront will show up here for follow-up.</div>
-              </div>
             </div>
-            <div id="dashboardOrders"></div>
+            <div id="ordersList"></div>
           </section>
         </div>
       </div>

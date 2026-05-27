@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendly Admin Login</title>
+  <script src="supabase.js"></script>
+  <script src="vendly-nav.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #184f34;
+      --green-light: #e8f3eb;
+      --ink: #132019;
+      --muted: #627368;
+      --line: #d7e3da;
+      --white: #ffffff;
+      --red: #b42318;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: 'Outfit', sans-serif;
+      color: var(--ink);
+      background: radial-gradient(circle at top, #edf8f0 0%, #f8fbf9 42%, #eef3ef 100%);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .shell {
+      width: min(980px, 100%);
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      border-radius: 28px;
+      overflow: hidden;
+      background: var(--white);
+      border: 1px solid rgba(19, 32, 25, 0.08);
+      box-shadow: 0 30px 80px rgba(19, 32, 25, 0.12);
+    }
+    .hero {
+      background: linear-gradient(160deg, #123c28 0%, #1b5a3c 58%, #246a48 100%);
+      color: white;
+      padding: 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px);
+      background-size: 26px 26px;
+      opacity: 0.45;
+    }
+    .hero > * { position: relative; z-index: 1; }
+    .logo {
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.7rem;
+      text-decoration: none;
+      color: white;
+    }
+    .hero h1 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(2.3rem, 4vw, 3.4rem);
+      line-height: 1.05;
+      margin-bottom: 18px;
+    }
+    .hero p {
+      max-width: 380px;
+      color: rgba(255,255,255,0.76);
+      line-height: 1.7;
+    }
+    .hero-card {
+      margin-top: 32px;
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(8px);
+    }
+    .form-pane {
+      padding: 48px 42px;
+      display: flex;
+      align-items: center;
+    }
+    .form-wrap {
+      width: 100%;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+    .eyebrow {
+      color: var(--green);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    h2 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 2.2rem;
+      line-height: 1.08;
+      margin-bottom: 10px;
+    }
+    .sub {
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .field input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 15px;
+      font: inherit;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .field input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 4px rgba(24, 79, 52, 0.08);
+    }
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 16px;
+      padding: 14px 18px;
+      background: var(--green);
+      color: white;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn:disabled { opacity: 0.7; cursor: wait; }
+    .hint {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.7;
+    }
+    .hint a { color: var(--green); text-decoration: none; }
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      background: #132019;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 14px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { background: var(--red); }
+    @media (max-width: 880px) {
+      .shell { grid-template-columns: 1fr; }
+      .hero { padding: 32px 28px; min-height: 280px; }
+      .form-pane { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <a href="#" class="logo" data-nav="landing">Vendly</a>
+      <div>
+        <h1>Admin access for live operations.</h1>
+        <p>Use this page only for project administration. Vendor accounts and storefront management stay separated from admin access.</p>
+        <div class="hero-card">Only emails or user ids listed in `admin_users` will be allowed into the admin console.</div>
+      </div>
+    </section>
+    <main class="form-pane">
+      <div class="form-wrap">
+        <div class="eyebrow">Admin Access</div>
+        <h2>Sign in</h2>
+        <p class="sub">Use your admin email and password. Non-admin accounts will be signed back out.</p>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" autocomplete="email" placeholder="ashedavid2007@gmail.com">
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" autocomplete="current-password" placeholder="Enter your password">
+        </div>
+        <button class="btn" id="submitBtn" type="button">Open admin console</button>
+        <p class="hint">Need the vendor area instead? <a href="login.html">Use vendor login</a>.</p>
+      </div>
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const submitBtn = document.getElementById('submitBtn');
+    const toast = document.getElementById('toast');
+    let toastTimer;
+
+    function showToast(message, type = '') {
+      toast.textContent = message;
+      toast.className = 'toast' + (type ? ' ' + type : '');
+      clearTimeout(toastTimer);
+      requestAnimationFrame(() => toast.classList.add('show'));
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    async function handleAdminLogin() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      if (!email || !password) {
+        showToast('Enter both email and password.', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      try {
+        const client = await window.waitForSupabaseClient();
+        const { data, error } = await client.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        const user = data?.user || data;
+        const enrichedUser = await window.VendlyAuth.setUser(user);
+        if (!enrichedUser?.isAdmin) {
+          await window.VendlyAuth.clearUser();
+          throw new Error('This account is not listed as an admin.');
+        }
+        showToast('Admin login successful.');
+        setTimeout(() => window.VendlyNav.go('admin'), 700);
+      } catch (err) {
+        showToast(err.message || 'Admin login failed.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    }
+
+    submitBtn.addEventListener('click', handleAdminLogin);
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Enter' && !submitBtn.disabled) handleAdminLogin();
+    });
+  </script>
+</body>
+</html>

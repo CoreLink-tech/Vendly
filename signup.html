@@ -747,7 +747,7 @@
                 </div>
                 <div>
                     <div class="feature-text-title">One link for everything</div>
-                    <div class="feature-text-sub">Share vendly.com/yourstore anywhere and customers can browse and order instantly.</div>
+                    <div class="feature-text-sub">Share your store link anywhere and customers can browse and order instantly.</div>
                 </div>
             </div>
             <div class="feature-item">
@@ -770,7 +770,7 @@
                 </div>
                 <div>
                     <div class="feature-text-title">You control payment</div>
-                    <div class="feature-text-sub">Bank transfer, cash, POS — collect money however works for you. No middleman.</div>
+                    <div class="feature-text-sub">Bank transfer, cash, POS - collect money however works for you. No middleman.</div>
                 </div>
             </div>
             <div class="feature-item">
@@ -787,7 +787,7 @@
         </div>
     </div>
 
-    <div class="panel-footer">© 2026 Vendly</div>
+    <div class="panel-footer">(c) 2026 Vendly</div>
 </div>
 
 <!-- RIGHT PANEL -->
@@ -802,7 +802,7 @@
                     <div class="step-dot active"></div>
                     <div class="step-dot"></div>
                 </div>
-                Step 1 of 3 — Account setup
+                Step 1 of 3 - Account setup
             </div>
             <div class="form-title">Create your store</div>
             <div class="form-subtitle">Fill in your details and your store goes live immediately.</div>
@@ -815,7 +815,7 @@
                 <div class="field-group">
                     <label class="field-label">First name <span class="field-required">*</span></label>
                     <div class="field-wrap">
-                        <input type="text" class="field-input" id="firstName" placeholder="Ada" autocomplete="given-name">
+                        <input type="text" class="field-input" id="firstName" placeholder="First name" autocomplete="given-name">
                         <div class="field-icon">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
@@ -831,7 +831,7 @@
                 <div class="field-group">
                     <label class="field-label">Last name <span class="field-required">*</span></label>
                     <div class="field-wrap">
-                        <input type="text" class="field-input" id="lastName" placeholder="Okonkwo" autocomplete="family-name">
+                        <input type="text" class="field-input" id="lastName" placeholder="Last name" autocomplete="family-name">
                         <div class="field-icon">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
@@ -850,12 +850,9 @@
             <div class="field-group">
                 <label class="field-label">Store name <span class="field-required">*</span></label>
                 <div class="field-wrap">
-                    <input type="text" class="field-input" id="storeName" placeholder="e.g. Amaka's Boutique" oninput="generateSlug(this.value)">
+                    <input type="text" class="field-input" id="storeName" placeholder="e.g. My Fashion Store" oninput="generateSlug(this.value)">
                     <div class="field-icon">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-                            <polyline points="9 22 9 12 15 12 15 22"/>
-                        </svg>
+                        <!-- ...existing code... -->
                     </div>
                 </div>
                 <div class="field-error" id="err-storeName">
@@ -868,8 +865,8 @@
             <div class="field-group">
                 <label class="field-label">Store link <span class="field-required">*</span></label>
                 <div class="slug-wrap" id="slugWrap">
-                    <div class="slug-prefix">vendly.com/</div>
-                    <input type="text" class="slug-input" id="storeSlug" placeholder="amaka" oninput="checkSlug(this.value)">
+                    <div class="slug-prefix">vendly-snowy.vercel.app/</div>
+                    <input type="text" class="slug-input" id="storeSlug" placeholder="store-link" oninput="checkSlug(this.value)">
                 </div>
                 <div class="slug-status checking" id="slugStatus" style="display:none">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/></svg>
@@ -886,7 +883,7 @@
             <div class="field-group">
                 <label class="field-label">Email address <span class="field-required">*</span></label>
                 <div class="field-wrap">
-                    <input type="email" class="field-input" id="email" placeholder="ada@example.com" autocomplete="email">
+                    <input type="email" class="field-input" id="email" placeholder="you@example.com" autocomplete="email">
                     <div class="field-icon">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -910,7 +907,7 @@
                         </svg>
                         +234
                     </div>
-                    <input type="tel" class="phone-input" id="whatsapp" placeholder="0812 345 6789" maxlength="11">
+                    <input type="tel" class="phone-input" id="whatsapp" placeholder="08000000000" maxlength="11">
                 </div>
                 <div class="field-error" id="err-whatsapp">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -983,7 +980,7 @@
         <div class="success-title">Your store is live.</div>
         <div class="success-sub">Share your link and start receiving orders on WhatsApp. You can add products from your dashboard.</div>
         <div class="success-link-box">
-            <div class="success-link-text">vendly.com/<span id="successSlug">yourstore</span></div>
+            <div class="success-link-text">vendly-snowy.vercel.app/<span id="successSlug">yourstore</span></div>
             <button class="copy-btn" onclick="copyStoreLink()">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
@@ -1014,6 +1011,10 @@
     let termsChecked = false;
     let slugValid = false;
     let slugTimeout;
+    let slugCheckToken = 0;
+    const RESERVED_SLUGS = new Set(['shop', 'store', 'vendly', 'admin']);
+    const DISPLAY_HOST = window.VendlyStores?.APP_DISPLAY_HOST || 'vendly-snowy.vercel.app';
+    const referralCodeFromUrl = new URLSearchParams(window.location.search).get('ref')?.trim().toUpperCase() || '';
 
     // SLUG GENERATOR
     function generateSlug(storeName) {
@@ -1030,12 +1031,11 @@
     }
 
     // SLUG CHECKER
-    const takenSlugs = ['amaka', 'shop', 'store', 'vendly', 'admin', 'test'];
-
     function checkSlug(value) {
         const status = document.getElementById('slugStatus');
-        const wrap = document.getElementById('slugWrap');
-        const clean = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+        const clean = window.VendlyStores?.normalizeSlug
+            ? window.VendlyStores.normalizeSlug(value)
+            : value.toLowerCase().replace(/[^a-z0-9-]/g, '');
 
         document.getElementById('storeSlug').value = clean;
 
@@ -1050,27 +1050,43 @@
         status.innerHTML = `
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <circle cx="12" cy="12" r="10"/>
-            </svg> Checking availability...`;
+            </svg> Checking ${DISPLAY_HOST}/${clean}...`;
 
         clearTimeout(slugTimeout);
-        slugTimeout = setTimeout(() => {
-            const taken = takenSlugs.includes(clean);
-            slugValid = !taken;
+        const requestToken = ++slugCheckToken;
+        slugTimeout = setTimeout(async () => {
+            let taken = RESERVED_SLUGS.has(clean);
 
+            if (!taken) {
+                try {
+                    const client = await window.waitForSupabaseClient();
+                    const { data, error } = await client.from('stores').select('slug').eq('slug', clean).maybeSingle();
+                    if (requestToken !== slugCheckToken) return;
+                    if (error && error.code !== 'PGRST116') throw error;
+                    taken = !!data;
+                } catch (err) {
+                    console.warn('Slug availability check failed', err.message || err);
+                }
+            }
+
+            if (requestToken !== slugCheckToken) return;
+
+            slugValid = !taken;
             if (taken) {
                 status.className = 'slug-status taken';
                 status.innerHTML = `
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                         <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
-                    </svg> vendly.com/${clean} is already taken`;
-            } else {
-                status.className = 'slug-status available';
-                status.innerHTML = `
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg> vendly.com/${clean} is available`;
+                    </svg> ${DISPLAY_HOST}/${clean} is already taken`;
+                return;
             }
-        }, 700);
+
+            status.className = 'slug-status available';
+            status.innerHTML = `
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg> ${DISPLAY_HOST}/${clean} is available`;
+        }, 400);
     }
 
     // PASSWORD STRENGTH
@@ -1216,14 +1232,34 @@
                     owner_id: user.id,
                     name: storeName,
                     slug,
-                    whatsapp: phone
+                    whatsapp: phone,
+                    subscription_status: 'pending_activation',
+                    subscription_plan: null,
+                    subscription_started_at: null,
+                    subscription_expires_at: null,
+                    activated_at: null
                 }], { onConflict: 'slug' });
+
+                if (referralCodeFromUrl) {
+                    await client.rpc('register_referral_signup', {
+                        p_ref_code: referralCodeFromUrl,
+                        p_referred_user_id: user.id,
+                        p_referred_name: `${firstName} ${lastName}`.trim(),
+                        p_store_name: storeName,
+                        p_slug: slug
+                    });
+                }
             } catch (ie) {
                 console.warn('Could not insert vendor profile/store row:', ie.message || ie);
             }
 
             if (data?.session) {
                 await VendlyAuth.setUser(user);
+                try {
+                    await client.rpc('ensure_my_referral_code', { p_seed: slug });
+                } catch (err) {
+                    console.warn('Referral code bootstrap failed', err?.message || err);
+                }
             } else {
                 localStorage.removeItem('vendly_user');
                 showToast('Check your email to confirm your account before logging in.', 'success');
@@ -1242,7 +1278,10 @@
     // COPY STORE LINK
     function copyStoreLink() {
         const slug = document.getElementById('successSlug').textContent;
-        navigator.clipboard.writeText(`https://vendly.com/${slug}`).then(() => {
+        const url = window.VendlyStores?.buildCanonicalStoreUrl
+            ? window.VendlyStores.buildCanonicalStoreUrl(slug)
+            : `https://${DISPLAY_HOST}/${slug}`;
+        navigator.clipboard.writeText(url).then(() => {
             showToast('Store link copied');
         });
     }
@@ -1277,3 +1316,5 @@
 
 </body>
 </html>
+
+

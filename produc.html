@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vendly Dashboard</title>
+  <title>Vendly Products</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
   <script src="vendly-nav.js"></script>
   <script src="vendor-portal.js"></script>
 </head>
-<body data-page="dashboard">
+<body data-page="products">
   <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Close menu"></button>
 
   <div class="portal-shell">
@@ -50,14 +50,14 @@
         <div class="topbar-left">
           <button class="ghost-icon-btn mobile-toggle" id="sidebarToggle" type="button" aria-label="Open menu"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
           <div>
-            <div class="page-eyebrow" id="pageEyebrow">Vendor portal</div>
-            <h1 class="page-title" id="pageTitle">Dashboard</h1>
-            <p class="page-subtitle" id="pageSubtitle">See your store performance, link status, and the next actions that matter.</p>
+            <div class="page-eyebrow" id="pageEyebrow">Catalog</div>
+            <h1 class="page-title" id="pageTitle">Products</h1>
+            <p class="page-subtitle" id="pageSubtitle">Add new items, update details, and control what shoppers see in your store.</p>
           </div>
         </div>
         <div class="topbar-actions">
           <a class="btn btn-outline" id="viewStorefrontBtn" href="#" target="_blank" rel="noopener">View storefront</a>
-          <a class="btn btn-primary" id="topbarPrimaryBtn" href="produc.html">Manage products</a>
+          <a class="btn btn-primary" id="topbarPrimaryBtn" href="dashboard.html">Open dashboard</a>
         </div>
       </header>
 
@@ -68,7 +68,7 @@
             <div>
               <div class="banner-label">Your store link</div>
               <div class="banner-link" id="storeBannerLink">Generating store link...</div>
-              <div class="banner-meta" id="storeBannerMeta">Your public storefront link will appear here.</div>
+              <div class="banner-meta" id="storeBannerMeta">Update products here and they reflect in your storefront immediately.</div>
             </div>
           </div>
           <div class="store-banner-actions">
@@ -81,48 +81,70 @@
         <div class="alert-strip" id="activationAlert" style="display:none;"></div>
 
         <div class="page-grid">
-          <div class="stats-grid" id="dashboardStats"></div>
-
           <section class="panel">
             <div class="panel-header">
               <div>
-                <h2 class="panel-title">Quick actions</h2>
-                <div class="panel-subtitle">Jump straight into the areas that need attention today.</div>
+                <h2 class="panel-title" id="productFormTitle">Add a new product</h2>
+                <div class="panel-subtitle" id="productFormNote">Upload an image, set the price, and publish it directly to your storefront.</div>
+              </div>
+              <div class="panel-actions">
+                <button class="btn btn-outline btn-sm" id="cancelEditProductBtn" type="button" style="display:none;">Cancel edit</button>
               </div>
             </div>
-            <div class="quick-link-grid" id="quickLinks"></div>
+            <form id="productForm" class="form-grid">
+              <input type="hidden" id="productId">
+              <div class="form-grid two">
+                <div class="field">
+                  <label for="productName">Product name</label>
+                  <input id="productName" type="text" placeholder="Product name">
+                </div>
+                <div class="field">
+                  <label for="productPrice">Price</label>
+                  <input id="productPrice" type="number" min="0" step="0.01" placeholder="6500">
+                </div>
+              </div>
+              <div class="form-grid two">
+                <div class="field">
+                  <label for="productStatus">Visibility</label>
+                  <select id="productStatus">
+                    <option value="live">Live</option>
+                    <option value="hidden">Hidden</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="productImage">Product image</label>
+                  <input class="upload-input" id="productImage" type="file" accept="image/*">
+                </div>
+              </div>
+              <div class="field">
+                <label for="productDescription">Description</label>
+                <textarea id="productDescription" placeholder="A quick description shoppers will see on the storefront."></textarea>
+              </div>
+              <div class="preview-box" id="productPreview"></div>
+              <div class="panel-actions">
+                <button class="btn btn-primary" id="saveProductBtn" type="submit">Save product</button>
+              </div>
+            </form>
           </section>
 
-          <div class="two-col">
-            <section class="panel">
-              <div class="panel-header">
-                <div>
-                  <h2 class="panel-title">Store health</h2>
-                  <div class="panel-subtitle">Your current access state, revenue snapshot, and key reminders.</div>
-                </div>
-              </div>
-              <div id="dashboardStoreHealth"></div>
-            </section>
-
-            <section class="panel">
-              <div class="panel-header">
-                <div>
-                  <h2 class="panel-title">Recent products</h2>
-                  <div class="panel-subtitle">The latest items currently attached to your store.</div>
-                </div>
-              </div>
-              <div id="dashboardProducts"></div>
-            </section>
-          </div>
-
           <section class="panel">
             <div class="panel-header">
               <div>
-                <h2 class="panel-title">Recent orders</h2>
-                <div class="panel-subtitle">Orders placed through the storefront will show up here for follow-up.</div>
+                <h2 class="panel-title">Your catalog</h2>
+                <div class="panel-subtitle" id="productsCount">0 items shown</div>
+              </div>
+              <div class="panel-actions">
+                <div class="toolbar-group">
+                  <label class="pill-note" for="productFilter">Filter</label>
+                  <select id="productFilter">
+                    <option value="all">All products</option>
+                    <option value="live">Live only</option>
+                    <option value="hidden">Hidden only</option>
+                  </select>
+                </div>
               </div>
             </div>
-            <div id="dashboardOrders"></div>
+            <div id="productsGrid"></div>
           </section>
         </div>
       </div>

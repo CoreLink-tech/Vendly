@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Amaka's Boutique — Shop on Vendly</title>
+  <title>Vendly Store - Shop on Vendly</title>
   <script src="supabase.js"></script>
   <script src="vendly-nav.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -118,7 +118,7 @@
       <div class="store-name">Vendly Store</div>
       <div class="store-tagline">
         <div class="store-tagline-dot"></div>
-        Fashion &amp; Accessories · Lagos
+        Order directly on WhatsApp
       </div>
     </div>
     <div class="header-badge">
@@ -133,8 +133,8 @@
 <section class="store-hero">
   <div class="hero-inner">
     <div class="hero-greeting">Vendly Store</div>
-    <h1 class="hero-title">Shop <em>Amaka's</em><br/>Collection</h1>
-    <p class="hero-desc">Pick your favourites, tap Order on WhatsApp — and we'll sort out delivery. Payment on delivery or transfer, your choice.</p>
+    <h1 class="hero-title">Shop this <em>collection</em></h1>
+    <p class="hero-desc">Browse available products, pick what you want, and send your order straight to the seller on WhatsApp.</p>
     <div class="hero-pills">
       <div class="hero-pill">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -167,7 +167,7 @@
         <path d="M16 10a4 4 0 0 1-8 0"/>
       </svg>
     </div>
-    <span>Powered by <span class="footer-vendly">Vendly</span> · Create your free store</span>
+    <span>Powered by <span class="footer-vendly">Vendly</span> - Create your free store</span>
   </a>
 </footer>
 
@@ -175,7 +175,7 @@
   <div class="order-bar-inner">
     <div class="order-summary">
       <div class="order-count"><strong id="bar-item-count">0 items</strong> in your order</div>
-      <div class="order-total">Total: <span id="bar-total">₦0</span></div>
+      <div class="order-total">Total: <span id="bar-total">NGN 0</span></div>
     </div>
     <a class="btn-whatsapp" id="whatsapp-btn" href="#" target="_blank" rel="noopener">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -193,6 +193,8 @@
   let STORE = { ...EMPTY_STORE };
   let PRODUCTS = [];
   let gridListenerAttached = false;
+  let productViewObserver = null;
+  const seenProductViews = new Set();
 
   function normalizeWhatsAppNumber(input) {
     const digits = String(input || '').replace(/\D/g, '');
@@ -214,9 +216,27 @@
     };
   }
 
+  function getSlugFromPathname() {
+    const path = String(window.location.pathname || '').replace(/^\/+|\/+$/g, '');
+    if (!path) return '';
+
+    const segments = path.split('/').filter(Boolean);
+    if (segments.length !== 1) return '';
+
+    const candidate = segments[0];
+    if (/\.html?$/i.test(candidate)) return '';
+    return window.VendlyStores?.normalizeSlug(candidate) || '';
+  }
+
   function getRequestedSlug() {
     const params = new URLSearchParams(window.location.search);
-    return params.get('slug') || getStoredVendor()?.slug || '';
+    return window.VendlyStores?.normalizeSlug(
+      params.get('slug')
+      || getSlugFromPathname()
+      || getStoredVendor()?.slug
+      || ''
+    )
+      || '';
   }
 
   function getVisitorKey() {
@@ -258,7 +278,56 @@
   const cart = {};
   const cartTotal = () => PRODUCTS.reduce((sum, product) => sum + (cart[product.id] || 0) * Number(product.price || 0), 0);
   const cartCount = () => Object.values(cart).reduce((sum, value) => sum + value, 0);
-  const fmt = n => `₦${Number(n || 0).toLocaleString('en-NG')}`;
+  const fmt = n => `NGN ${Number(n || 0).toLocaleString('en-NG')}`;
+
+  function serializeCartItems() {
+    return PRODUCTS
+      .filter(product => cart[product.id])
+      .map(product => ({
+        product_id: product.id,
+        name: product.name,
+        quantity: cart[product.id],
+        unit_price: Number(product.price || 0),
+        total_price: Number(product.price || 0) * cart[product.id]
+      }));
+  }
+
+  function wireProductViewTracking() {
+    if (productViewObserver) {
+      productViewObserver.disconnect();
+      productViewObserver = null;
+    }
+
+    if (!STORE.id || !STORE.owner_id || !PRODUCTS.length || typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+
+    productViewObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting || entry.intersectionRatio < 0.65) return;
+
+        const productId = entry.target.dataset.id;
+        const trackKey = `${getVisitorKey()}::${productId}`;
+        if (!productId || seenProductViews.has(trackKey)) return;
+
+        seenProductViews.add(trackKey);
+        productViewObserver.unobserve(entry.target);
+
+        window.waitForSupabaseClient()
+          .then(client => client.rpc('log_product_view', {
+            p_store_id: STORE.id,
+            p_owner_id: STORE.owner_id,
+            p_product_id: productId,
+            p_visitor_key: getVisitorKey()
+          }))
+          .catch(err => {
+            console.warn('Could not record product view', err.message || err);
+          });
+      });
+    }, { threshold: 0.65 });
+
+    document.querySelectorAll('.product-card[data-id]').forEach(card => productViewObserver.observe(card));
+  }
 
   function renderGrid() {
     const grid = document.getElementById('product-grid');
@@ -309,6 +378,7 @@
       document.getElementById('product-grid').addEventListener('click', handleClick);
       gridListenerAttached = true;
     }
+    wireProductViewTracking();
   }
 
   function handleClick(e) {
@@ -349,21 +419,50 @@
 
   function updateBar() {
     const count = cartCount();
+    const hasPhone = Boolean(STORE.phone);
+    const whatsappBtn = document.getElementById('whatsapp-btn');
     document.getElementById('bar-item-count').textContent = count === 1 ? '1 item' : `${count} items`;
     document.getElementById('bar-total').textContent = fmt(cartTotal());
     document.getElementById('order-bar').classList.toggle('visible', count > 0);
     document.body.style.paddingBottom = count > 0 ? '104px' : '100px';
-    document.getElementById('whatsapp-btn').href = buildWALink();
+    whatsappBtn.href = buildWALink();
+    whatsappBtn.setAttribute('aria-disabled', hasPhone ? 'false' : 'true');
+    whatsappBtn.style.opacity = hasPhone ? '1' : '0.65';
   }
 
   function buildWALink() {
     if (!STORE.phone) return '#';
-    const lines = [`New order - ${STORE.name}`, STORE.slug ? `vendly.com/${STORE.slug}` : '', ''];
+    const storeLink = window.VendlyStores
+      ? window.VendlyStores.buildDisplayStoreLink(STORE.slug)
+      : (STORE.slug ? `vendly-snowy.vercel.app/${STORE.slug}` : '');
+    const lines = [`New order - ${STORE.name}`, storeLink, ''];
     PRODUCTS.forEach(p => {
       if (cart[p.id]) lines.push(`${p.name} x ${cart[p.id]} - ${fmt(Number(p.price || 0) * cart[p.id])}`);
     });
     lines.push('', `Total: ${fmt(cartTotal())}`);
     return `https://wa.me/${STORE.phone}?text=${encodeURIComponent(lines.join('\n'))}`;
+  }
+
+  async function recordOrderSubmission() {
+    if (!STORE.id || !STORE.owner_id || cartCount() === 0 || !STORE.phone) return;
+
+    const client = await window.waitForSupabaseClient().catch(() => null);
+    if (!client) return;
+
+    try {
+      await client.rpc('create_storefront_order', {
+        p_store_id: STORE.id,
+        p_owner_id: STORE.owner_id,
+        p_items: serializeCartItems(),
+        p_total_amount: cartTotal(),
+        p_whatsapp_url: buildWALink(),
+        p_customer_name: null,
+        p_customer_phone: null,
+        p_customer_note: null
+      });
+    } catch (err) {
+      console.warn('Could not save storefront order', err.message || err);
+    }
   }
 
   function renderStore() {
@@ -380,7 +479,9 @@
     }
     const heroGreeting = document.querySelector('.hero-greeting');
     if (heroGreeting) {
-      heroGreeting.textContent = STORE.slug ? `vendly.com/${STORE.slug}` : 'Vendly Store';
+      heroGreeting.textContent = STORE.slug
+        ? window.VendlyStores.buildDisplayStoreLink(STORE.slug)
+        : 'Vendly Store';
     }
     const heroTitle = document.querySelector('.hero-title');
     if (heroTitle) {
@@ -404,6 +505,10 @@
   function renderMissingStore(message) {
     STORE = { ...EMPTY_STORE };
     PRODUCTS = [];
+    if (productViewObserver) {
+      productViewObserver.disconnect();
+      productViewObserver = null;
+    }
     renderStore();
     document.getElementById('product-grid').innerHTML = `
       <div style="grid-column:1 / -1; background:#fff; border:1px solid #e5e7eb; border-radius:18px; padding:28px 20px; text-align:center; color:#374151;">
@@ -432,14 +537,14 @@
     if (viewer?.id && viewer.id === STORE.owner_id) return;
 
     try {
-      await client.from('store_views').insert([{
-        store_id: STORE.id,
-        owner_id: STORE.owner_id,
-        visitor_key: getVisitorKey(),
-        path: `${window.location.pathname}${window.location.search}`,
-        referrer: document.referrer || null,
-        user_agent: navigator.userAgent || null
-      }]);
+      await client.rpc('log_store_view', {
+        p_store_id: STORE.id,
+        p_owner_id: STORE.owner_id,
+        p_visitor_key: getVisitorKey(),
+        p_path: `${window.location.pathname}${window.location.search}`,
+        p_referrer: document.referrer || null,
+        p_user_agent: navigator.userAgent || null
+      });
     } catch (err) {
       console.warn('Could not record store view', err.message || err);
     }
@@ -461,13 +566,19 @@
     try {
       const { data: store, error } = await client
         .from('stores')
-        .select('id, owner_id, name, slug, whatsapp')
+        .select('id, owner_id, name, slug, whatsapp, subscription_status, subscription_plan, subscription_started_at, subscription_expires_at, trial_started_at, trial_ends_at, activated_at')
         .eq('slug', slug)
         .maybeSingle();
 
       if (error) throw error;
       if (!store) {
         renderMissingStore('This store could not be found.');
+        return;
+      }
+
+      const access = window.VendlyStores?.getAccessState?.(store);
+      if (access && !access.active) {
+        renderMissingStore(access.message || 'This store is not live right now.');
         return;
       }
 
@@ -492,6 +603,22 @@
     document.getElementById('store-header').classList.toggle('scrolled', window.scrollY > 10);
   }, { passive: true });
 
+  document.getElementById('whatsapp-btn').addEventListener('click', event => {
+    if (!STORE.phone) {
+      event.preventDefault();
+      showToast('This store has not added a WhatsApp number yet.');
+      return;
+    }
+
+    if (cartCount() === 0) {
+      event.preventDefault();
+      showToast('Add at least one product before ordering.');
+      return;
+    }
+
+    void recordOrderSubmission();
+  });
+
   renderStore();
   renderGrid();
   updateBar();
@@ -499,3 +626,4 @@
 </script>
 </body>
 </html>
+
