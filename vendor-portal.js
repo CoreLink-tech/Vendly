@@ -1,6 +1,13 @@
 (function () {
   const STORAGE_BUCKET = 'vendor-images';
   const TOAST_MS = 3200;
+  const PRODUCT_IMAGE_MAX_BYTES = 1024 * 1024;
+  const PRODUCT_IMAGE_MAX_DIMENSION = 1600;
+  const PRODUCT_IMAGE_MIN_DIMENSION = 480;
+  const PRODUCT_IMAGE_SCALE_STEP = 0.85;
+  const PRODUCT_IMAGE_QUALITY_STEPS = [0.86, 0.8, 0.74, 0.68, 0.62, 0.56, 0.5, 0.44];
+  const PRODUCT_IMAGE_OUTPUT_TYPE = 'image/webp';
+  const PRODUCT_IMAGE_OUTPUT_EXTENSION = 'webp';
 
   function getCurrentPage() {
     return document.body?.dataset?.page || 'dashboard';
@@ -1136,6 +1143,108 @@
     return dot === -1 ? 'jpg' : fileName.slice(dot + 1).toLowerCase();
   }
 
+  function fitWithinBounds(width, height, maxDimension) {
+    const largestSide = Math.max(width, height);
+    if (!largestSide || largestSide <= maxDimension) {
+      return {
+        width: Math.max(1, Math.round(width || 1)),
+        height: Math.max(1, Math.round(height || 1))
+      };
+    }
+
+    const scale = maxDimension / largestSide;
+    return {
+      width: Math.max(1, Math.round(width * scale)),
+      height: Math.max(1, Math.round(height * scale))
+    };
+  }
+
+  async function loadImageElement(file) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      const objectUrl = URL.createObjectURL(file);
+
+      image.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(image);
+      };
+
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('The selected image could not be processed.'));
+      };
+
+      image.src = objectUrl;
+    });
+  }
+
+  function createImageCanvas(image, width, height) {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext('2d', { alpha: false });
+    if (!context) throw new Error('This browser could not prepare the image for upload.');
+
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, width, height);
+    context.drawImage(image, 0, 0, width, height);
+    return canvas;
+  }
+
+  async function canvasToBlob(canvas, type, quality) {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(blob => {
+        if (!blob) {
+          reject(new Error('Image compression failed. Please try another image.'));
+          return;
+        }
+        resolve(blob);
+      }, type, quality);
+    });
+  }
+
+  async function compressProductImage(file, productName) {
+    if (!file?.type?.startsWith('image/')) {
+      throw new Error('Choose a valid image file before saving.');
+    }
+
+    const image = await loadImageElement(file);
+    const sourceWidth = image.naturalWidth || image.width || 1;
+    const sourceHeight = image.naturalHeight || image.height || 1;
+    const safeBaseName = window.VendlyStores.normalizeSlug(productName || 'product-image') || 'product-image';
+
+    let { width, height } = fitWithinBounds(sourceWidth, sourceHeight, PRODUCT_IMAGE_MAX_DIMENSION);
+
+    while (true) {
+      const canvas = createImageCanvas(image, width, height);
+
+      for (const quality of PRODUCT_IMAGE_QUALITY_STEPS) {
+        const blob = await canvasToBlob(canvas, PRODUCT_IMAGE_OUTPUT_TYPE, quality);
+        if (blob.type !== PRODUCT_IMAGE_OUTPUT_TYPE) {
+          throw new Error('This browser could not convert the image to WebP. Please use a modern browser and try again.');
+        }
+        if (blob.size > PRODUCT_IMAGE_MAX_BYTES) continue;
+
+        return new File([blob], `${safeBaseName}.${PRODUCT_IMAGE_OUTPUT_EXTENSION}`, {
+          type: PRODUCT_IMAGE_OUTPUT_TYPE,
+          lastModified: Date.now()
+        });
+      }
+
+      if (Math.max(width, height) <= PRODUCT_IMAGE_MIN_DIMENSION) break;
+
+      const nextWidth = Math.max(1, Math.round(width * PRODUCT_IMAGE_SCALE_STEP));
+      const nextHeight = Math.max(1, Math.round(height * PRODUCT_IMAGE_SCALE_STEP));
+      if (nextWidth === width && nextHeight === height) break;
+
+      width = nextWidth;
+      height = nextHeight;
+    }
+
+    throw new Error('Image could not be compressed below 1 MB. Please choose a smaller image.');
+  }
+
   function extractStoragePath(publicUrl) {
     if (!publicUrl || typeof publicUrl !== 'string') return null;
     const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`;
@@ -1148,12 +1257,13 @@
     const client = await getClient();
     if (!client || !file) return null;
 
+    const compressedFile = await compressProductImage(file, productName);
     const safeName = window.VendlyStores.normalizeSlug(productName || 'product') || 'product';
-    const ext = fileExtension(file.name);
+    const ext = fileExtension(compressedFile.name);
     const storagePath = `${ownerId}/${Date.now()}-${safeName}.${ext}`;
-    const { error } = await client.storage.from(STORAGE_BUCKET).upload(storagePath, file, {
+    const { error } = await client.storage.from(STORAGE_BUCKET).upload(storagePath, compressedFile, {
       cacheControl: '3600',
-      contentType: file.type || 'application/octet-stream',
+      contentType: compressedFile.type || 'application/octet-stream',
       upsert: false
     });
 
