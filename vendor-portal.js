@@ -4,6 +4,7 @@
   const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp', 'image/heic', 'image/heif'];
   const PRODUCT_IMAGE_MAX_WIDTH = 1200;
   const PRODUCT_IMAGE_WEBP_QUALITY = 0.85;
+  const imageSizeCache = new Map();
 
   function getCurrentPage() {
     return document.body?.dataset?.page || 'dashboard';
@@ -20,7 +21,14 @@
     productViews: [],
     productFormMode: 'create',
     productPreviewUrl: '',
-    productFile: null
+    productFile: null,
+    productFileSizeBytes: 0,
+    productFileWebpBlob: null,
+    productFileWebpBytes: 0,
+    productFileWebpError: '',
+    productFileDraftToken: '',
+    productImageSizes: {},
+    productImageTotalBytes: 0
   };
 
   const pageMeta = {
@@ -134,6 +142,16 @@
 
   function formatMoney(value) {
     return `NGN ${Number(value || 0).toLocaleString('en-NG')}`;
+  }
+
+  function formatBytes(bytes) {
+    const value = Number(bytes || 0);
+    if (!Number.isFinite(value) || value <= 0) return '0 B';
+
+    const units = ['B', 'KB', 'MB', 'GB'];
+    const exponent = Math.min(units.length - 1, Math.floor(Math.log(value) / Math.log(1024)));
+    const normalized = value / (1024 ** exponent);
+    return `${normalized >= 10 || exponent === 0 ? Math.round(normalized) : normalized.toFixed(1)} ${units[exponent]}`;
   }
 
   function formatDateTime(value) {
@@ -1190,6 +1208,48 @@
 
   function resetProductForm() {
     populateProductForm(null);
+  }
+
+  function clearProductImageDraft() {
+    state.productFile = null;
+    state.productFileSizeBytes = 0;
+    state.productFileWebpBlob = null;
+    state.productFileWebpBytes = 0;
+    state.productFileWebpError = '';
+    state.productFileDraftToken = '';
+  }
+
+  async function resolveRemoteImageSize(url) {
+    if (!url || typeof url !== 'string') return 0;
+    if (imageSizeCache.has(url)) return imageSizeCache.get(url) || 0;
+
+    try {
+      const response = await fetch(url, { method: 'GET' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const blob = await response.blob();
+      const size = Number(blob?.size || 0);
+      imageSizeCache.set(url, size);
+      return size;
+    } catch (_err) {
+      imageSizeCache.set(url, 0);
+      return 0;
+    }
+  }
+
+  async function hydrateProductImageSizes(products = state.products) {
+    const entries = await Promise.all((products || []).map(async product => {
+      if (!product?.image_url) return [product.id, 0];
+      const size = await resolveRemoteImageSize(product.image_url);
+      return [product.id, size];
+    }));
+
+    const sizesById = Object.fromEntries(entries);
+    state.productImageSizes = sizesById;
+    state.productImageTotalBytes = Object.values(sizesById).reduce((sum, size) => sum + Number(size || 0), 0);
+    state.products = (products || []).map(product => ({
+      ...product,
+      image_size_bytes: sizesById[product.id] || 0
+    }));
   }
 
   function extractStoragePath(publicUrl) {
