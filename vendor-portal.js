@@ -1,8 +1,13 @@
 (function () {
   const STORAGE_BUCKET = 'vendor-images';
   const TOAST_MS = 3200;
+
+  function getCurrentPage() {
+    return document.body?.dataset?.page || 'dashboard';
+  }
+
   const state = {
-    page: document.body.dataset.page || 'dashboard',
+    page: getCurrentPage(),
     user: null,
     store: null,
     access: null,
@@ -1565,6 +1570,7 @@
   }
 
   async function init() {
+    state.page = getCurrentPage();
     wireShell();
     wirePageEvents();
 
