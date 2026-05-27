@@ -92,6 +92,7 @@
                 <button class="btn btn-outline btn-sm" id="cancelEditProductBtn" type="button" style="display:none;">Cancel edit</button>
               </div>
             </div>
+            <div class="media-summary" id="productMediaSummary" aria-live="polite"></div>
             <form id="productForm" class="form-grid">
               <input type="hidden" id="productId">
               <div class="form-grid two">
@@ -115,6 +116,7 @@
                 <div class="field">
                   <label for="productImage">Product image</label>
                   <input class="upload-input" id="productImage" type="file" accept="image/*">
+                  <div class="field-hint upload-size-info" id="productImageInfo">No image selected yet. Your upload will be converted to WebP.</div>
                 </div>
               </div>
               <div class="field">

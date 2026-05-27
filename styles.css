@@ -291,9 +291,12 @@ button {
 
 .hero-visual {
   position: relative;
-  display: grid;
-  gap: 22px;
-  align-items: start;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 1;
+  overflow: visible;
 }
 
 .phone-frame {
@@ -306,6 +309,8 @@ button {
   box-shadow: 0 48px 96px rgba(0,0,0,0.18), inset 0 0 0 1px rgba(255,255,255,0.06);
   overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .phone-notch {
@@ -317,7 +322,8 @@ button {
 }
 
 .phone-screen {
-  height: calc(100% - 26px);
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   background: #f6f6f6;
 }

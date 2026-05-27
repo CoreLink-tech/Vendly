@@ -738,14 +738,51 @@
     `;
   }
 
+  function renderProductMediaSummary() {
+    const container = byId('productMediaSummary');
+    if (!container) return;
+
+    const totalImageCount = state.products.filter(product => product.image_url).length;
+    const totalLabel = totalImageCount
+      ? (state.productImageTotalBytes > 0
+        ? `${formatBytes(state.productImageTotalBytes)} across ${totalImageCount} product image${totalImageCount === 1 ? '' : 's'}`
+        : `${totalImageCount} product image${totalImageCount === 1 ? '' : 's'} tracked`)
+      : 'No uploaded images yet';
+    const selectedLabel = state.productFile
+      ? `${formatBytes(state.productFileSizeBytes)} selected`
+      : 'No file selected';
+    const convertedLabel = state.productFile
+      ? (state.productFileWebpBlob
+        ? `${formatBytes(state.productFileWebpBytes)} after WebP conversion`
+        : (state.productFileWebpError ? 'Could not preview WebP size' : 'Converting to WebP...'))
+      : 'WebP preview will appear after selection';
+
+    container.innerHTML = `
+      <div class="media-stat-card">
+        <div class="media-stat-label">Selected image</div>
+        <div class="media-stat-value">${escapeHtml(selectedLabel)}</div>
+        <div class="media-stat-sub">${escapeHtml(convertedLabel)}</div>
+      </div>
+      <div class="media-stat-card">
+        <div class="media-stat-label">Uploaded media</div>
+        <div class="media-stat-value">${escapeHtml(totalLabel)}</div>
+        <div class="media-stat-sub">Based on images already saved to your catalog</div>
+      </div>
+    `;
+  }
+
   function productCardMarkup(product, actionsEnabled = true) {
     const isLive = product.status === 'live';
+    const imageSizeLabel = product.image_url
+      ? (Number(product.image_size_bytes || 0) > 0 ? formatBytes(product.image_size_bytes) : 'Size unavailable')
+      : 'No image';
     return `
       <article class="product-card-admin" data-product-id="${escapeHtml(product.id)}">
         <div class="product-image-admin">
           ${product.image_url
             ? `<img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}">`
             : iconSvg('image')}
+          <div class="product-image-size-pill">${escapeHtml(imageSizeLabel)}</div>
         </div>
         <div class="product-body-admin">
           <div class="product-topline">
@@ -757,6 +794,7 @@
             <div class="money">${escapeHtml(formatMoney(product.price))}</div>
             <div class="pill-note">${escapeHtml(formatRelativeTime(product.updated_at || product.created_at))}</div>
           </div>
+          <div class="pill-note product-size-note">${product.image_url ? `Image ${escapeHtml(imageSizeLabel)}` : 'No uploaded image'}</div>
           ${actionsEnabled
             ? `<div class="card-action-row">
                 <button class="btn btn-outline btn-sm" type="button" data-action="edit-product" data-product-id="${escapeHtml(product.id)}">Edit</button>
@@ -882,12 +920,36 @@
       : 'Upload an image, set the price, and publish it directly to your storefront.';
     if (saveBtn) saveBtn.textContent = state.productFormMode === 'edit' ? 'Save changes' : 'Save product';
     if (cancelBtn) cancelBtn.style.display = state.productFormMode === 'edit' ? 'inline-flex' : 'none';
+
+    const sizeInfo = byId('productImageInfo');
+    if (sizeInfo) {
+      if (!state.productFile) {
+        const currentImageSize = getProductImageSizeByUrl(state.productPreviewUrl);
+        if (state.productPreviewUrl) {
+          sizeInfo.textContent = currentImageSize > 0
+            ? `Uploaded image size: ${formatBytes(currentImageSize)}`
+            : 'Uploaded image size: unavailable yet.';
+        } else {
+          sizeInfo.textContent = 'No image selected yet. Your upload will be converted to WebP.';
+        }
+      } else {
+        const raw = formatBytes(state.productFileSizeBytes);
+        const converted = state.productFileWebpBlob
+          ? formatBytes(state.productFileWebpBytes)
+          : (state.productFileWebpError ? 'conversion failed' : 'converting...');
+        sizeInfo.textContent = `Selected file: ${raw}. WebP preview: ${converted}.`;
+      }
+    }
+
+    renderProductMediaSummary();
   }
 
   function populateProductForm(product) {
     state.productFormMode = product ? 'edit' : 'create';
-    state.productFile = null;
+    releaseProductPreviewUrl();
+    clearProductImageDraft();
     state.productPreviewUrl = product?.image_url || '';
+    state.productFileDraftToken = '';
 
     byId('productId').value = product?.id || '';
     byId('productName').value = product?.name || '';
@@ -918,6 +980,7 @@
     const count = byId('productsCount');
     if (count) count.textContent = `${products.length} item${products.length === 1 ? '' : 's'} shown`;
     renderProductForm();
+    renderProductMediaSummary();
   }
 
   function renderOrdersPage(metrics) {
@@ -1210,6 +1273,12 @@
     populateProductForm(null);
   }
 
+  function releaseProductPreviewUrl() {
+    if (state.productPreviewUrl?.startsWith?.('blob:')) {
+      URL.revokeObjectURL(state.productPreviewUrl);
+    }
+  }
+
   function clearProductImageDraft() {
     state.productFile = null;
     state.productFileSizeBytes = 0;
@@ -1236,6 +1305,38 @@
     }
   }
 
+  async function prepareProductImageDraft(file) {
+    clearProductImageDraft();
+
+    if (!file) {
+      renderProductForm();
+      return;
+    }
+
+    const draftToken = `${file.name}:${file.size}:${file.lastModified}`;
+    state.productFile = file;
+    state.productFileSizeBytes = file.size || 0;
+    state.productFileDraftToken = draftToken;
+    state.productFileWebpBlob = null;
+    state.productFileWebpBytes = 0;
+    state.productFileWebpError = '';
+    renderProductForm();
+
+    try {
+      const webpBlob = await convertToWebP(file, PRODUCT_IMAGE_WEBP_QUALITY);
+      if (state.productFileDraftToken !== draftToken) return;
+
+      state.productFileWebpBlob = webpBlob;
+      state.productFileWebpBytes = webpBlob.size || 0;
+      state.productFileWebpError = '';
+    } catch (err) {
+      if (state.productFileDraftToken !== draftToken) return;
+      state.productFileWebpError = err?.message || 'Could not process the selected image.';
+    }
+
+    renderProductForm();
+  }
+
   async function hydrateProductImageSizes(products = state.products) {
     const entries = await Promise.all((products || []).map(async product => {
       if (!product?.image_url) return [product.id, 0];
@@ -1250,6 +1351,12 @@
       ...product,
       image_size_bytes: sizesById[product.id] || 0
     }));
+  }
+
+  function getProductImageSizeByUrl(url) {
+    if (!url) return 0;
+    const match = state.products.find(product => product.image_url === url);
+    return Number(match?.image_size_bytes || 0);
   }
 
   function extractStoragePath(publicUrl) {
@@ -1303,9 +1410,12 @@
         .order('created_at', { ascending: false });
       if (error) throw error;
       state.products = (data || []).map(normalizeProduct);
+      await hydrateProductImageSizes(state.products);
     } catch (err) {
       console.warn('Failed to load products', err.message || err);
       state.products = [];
+      state.productImageSizes = {};
+      state.productImageTotalBytes = 0;
     }
   }
 
@@ -1428,7 +1538,16 @@
 
         let imageFileToUpload;
         try {
-          imageFileToUpload = await convertToWebP(state.productFile, PRODUCT_IMAGE_WEBP_QUALITY);
+          const draftToken = `${state.productFile.name}:${state.productFile.size}:${state.productFile.lastModified}`;
+          if (state.productFileDraftToken === draftToken && state.productFileWebpBlob && state.productFileWebpBlob.type === 'image/webp') {
+            imageFileToUpload = state.productFileWebpBlob;
+          } else {
+            imageFileToUpload = await convertToWebP(state.productFile, PRODUCT_IMAGE_WEBP_QUALITY);
+            state.productFileWebpBlob = imageFileToUpload;
+            state.productFileWebpBytes = imageFileToUpload.size || 0;
+            state.productFileDraftToken = draftToken;
+            state.productFileWebpError = '';
+          }
         } catch (conversionError) {
           console.error('Image conversion error:', conversionError);
           showToast('Could not process the image. Please try a different file.', 'error');
@@ -1680,9 +1799,12 @@
     if (productImage) {
       productImage.addEventListener('change', event => {
         const file = event.target.files?.[0];
-        state.productFile = file || null;
-        state.productPreviewUrl = file ? URL.createObjectURL(file) : '';
-        renderProductForm();
+        const currentPreview = state.productPreviewUrl;
+        releaseProductPreviewUrl();
+        state.productPreviewUrl = file
+          ? URL.createObjectURL(file)
+          : (currentPreview?.startsWith?.('blob:') ? '' : currentPreview);
+        void prepareProductImageDraft(file);
       });
     }
 
