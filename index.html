@@ -47,6 +47,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
             background: rgba(255,255,255,0.92);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(229,231,235,0.6);
@@ -120,6 +122,17 @@
             padding: 14px 32px;
             font-size: 1rem;
             border-radius: 10px;
+            font-weight: 700;
+        }
+
+        .btn-secondary {
+            background: var(--grey-dark);
+            color: var(--white);
+            box-shadow: 0 12px 28px rgba(55,65,81,0.2);
+        }
+
+        .btn-secondary:hover {
+            background: #111827;
         }
 
         /* HERO */
@@ -232,6 +245,100 @@
 
         .trust-text { font-size: 0.85rem; color: var(--grey-mid); }
         .trust-text strong { color: var(--black); }
+
+        .pricing-section { padding: 80px 0; }
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .pricing-card {
+            padding: 32px;
+            border: 1.5px solid var(--grey-light);
+            background: var(--white);
+            min-height: 320px;
+        }
+
+        .pricing-card.best-value {
+            border-color: var(--green);
+            background: rgba(22,163,74,0.06);
+        }
+
+        .plan-badge {
+            display: inline-flex;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: var(--green-light);
+            color: var(--green-dark);
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-bottom: 22px;
+        }
+
+        .pricing-card h3 {
+            font-family: var(--font-display);
+            font-size: 1.7rem;
+            margin: 0 0 10px;
+        }
+
+        .plan-price {
+            font-size: 1.45rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            line-height: 1.2;
+        }
+
+        .plan-note {
+            color: var(--grey-mid);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .plan-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 12px;
+            color: var(--grey-mid);
+            font-size: 0.95rem;
+        }
+
+        .plan-list li::before {
+            content: '•';
+            color: var(--green);
+            display: inline-block;
+            width: 18px;
+        }
+
+        .pricing-action {
+            margin-top: 32px;
+            display: flex;
+            justify-content: center;
+        }
+
+            .referral-callout {
+            margin-top: 24px;
+            max-width: 680px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 20px 24px;
+            background: rgba(22,163,74,0.08);
+            border: 1px solid rgba(22,163,74,0.2);
+            border-radius: 16px;
+            color: var(--grey-dark);
+            font-size: 0.98rem;
+            line-height: 1.8;
+        }
+
+        .referral-note {
+            margin-top: 10px;
+            color: var(--grey-mid);
+            font-size: 0.92rem;
+            line-height: 1.7;
+        }
 
         /* PHONE MOCKUP */
         .hero-visual {
@@ -807,6 +914,7 @@
             color: var(--grey-mid);
             font-size: 0.85rem;
             transition: color 0.2s;
+            padding: 6px 0;
         }
 
         .footer-links a:hover { color: var(--black); }
@@ -849,7 +957,13 @@
         /* RESPONSIVE */
         @media (max-width: 960px) {
             nav { padding: 16px 24px; }
-            .nav-links { display: none; }
+            .nav-links {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 14px;
+                width: 100%;
+            }
 
             .hero {
                 grid-template-columns: 1fr;
@@ -862,7 +976,11 @@
             .hero-actions, .hero-trust { justify-content: center; }
             .hero-visual { display: none; }
 
-            section { padding: 60px 28px; }
+            section { padding: 60px 24px; }
+
+            .pricing-grid { grid-template-columns: 1fr; }
+            .pricing-card { padding: 28px; }
+            .referral-callout { padding: 18px 20px; }
 
             .steps-grid {
                 grid-template-columns: 1fr;
@@ -902,7 +1020,7 @@
     <ul class="nav-links">
         <li><a href="#how">How it works</a></li>
         <li><a href="#why">Why Vendly</a></li>
-        <!-- CHANGE 1: added Login link to nav -->
+        <li><a href="#signup">Start free</a></li>
         <li><a href="#" data-nav="login">Log in</a></li>
     </ul>
     <!-- CHANGE 2: Start now goes to signup page -->
@@ -917,20 +1035,14 @@
             Built for Nigerian sellers
         </div>
         <h1>Your store.<br><em>One link.</em><br>Orders on WhatsApp.</h1>
-        <p>Create an online storefront in minutes. Share one link with your customers. They browse, pick what they want, and their full order drops straight into your WhatsApp.</p>
+        <p>The only storefront that sends orders directly into your WhatsApp. No payment gateway. No app download. Just your products, your customers, and your money.</p>
         <div class="hero-actions">
             <!-- CHANGE 3: hero CTA goes to signup page -->
             <a href="#" data-nav="signup" class="btn btn-primary btn-large">Create your online store</a>
-            <a href="#how" class="btn btn-outline btn-large">See how it works</a>
+            <a href="#how" class="btn btn-secondary btn-large">See how it works</a>
         </div>
         <div class="hero-trust">
-            <div class="trust-avatars">
-                <div class="trust-avatar ta1">VS</div>
-                <div class="trust-avatar ta2">ML</div>
-                <div class="trust-avatar ta3">RT</div>
-                <div class="trust-avatar ta4">ON</div>
-            </div>
-            <div class="trust-text"><strong>Easy to start</strong> — no card needed</div>
+            <div class="trust-text"><strong>Free to start.</strong> No card required.</div>
         </div>
     </div>
 
@@ -967,39 +1079,39 @@
                     <div class="product-card">
                         <div class="product-img p1">🧺</div>
                         <div class="product-info">
-                            <div class="product-name">New arrival</div>
-                            <div class="product-price">NGN 0</div>
+                            <div class="product-name">Ankara Tote Bag</div>
+                            <div class="product-price">₦12,500</div>
                         </div>
                         <button class="add-btn" type="button">Add</button>
                     </div>
                     <div class="product-card">
                         <div class="product-img p2">👕</div>
                         <div class="product-info">
-                            <div class="product-name">Best seller</div>
-                            <div class="product-price">NGN 0</div>
+                            <div class="product-name">Men's Linen Shirt</div>
+                            <div class="product-price">₦8,000</div>
                         </div>
                         <button class="add-btn" type="button">Add</button>
                     </div>
                     <div class="product-card">
                         <div class="product-img p3">👟</div>
                         <div class="product-info">
-                            <div class="product-name">Limited stock</div>
-                            <div class="product-price">NGN 0</div>
+                            <div class="product-name">Leather Sandals</div>
+                            <div class="product-price">₦6,500</div>
                         </div>
                         <button class="add-btn" type="button">Add</button>
                     </div>
                     <div class="product-card">
                         <div class="product-img p4">👜</div>
                         <div class="product-info">
-                            <div class="product-name">Trending</div>
-                            <div class="product-price">NGN 0</div>
+                            <div class="product-name">Beaded Necklace Set</div>
+                            <div class="product-price">₦4,800</div>
                         </div>
                         <button class="add-btn" type="button">Add</button>
                     </div>
                 </div>
                 <div class="order-bar">
                     <div>
-                        <div class="order-bar-count">3 items - NGN 14,500</div>
+                        <div class="order-bar-count">2 items · ₦20,500</div>
                         <div class="order-bar-sub">Tap to send via WhatsApp</div>
                     </div>
                     <button class="whatsapp-btn">
@@ -1093,11 +1205,15 @@
             <div>
                 <div class="wa-preview">
                     <div class="wa-bubble">
-                        <div class="wa-title">New Order - Storefront</div>
-                        <div class="wa-from">Store link appears here</div>
-                        <div class="wa-line"><span>Selected item x 1</span><span>NGN 0</span></div>
-                        <div class="wa-total"><span>Total</span><span>NGN 0</span></div>
-                        <div class="wa-time">12:34 PM - Delivered</div>
+                        <div class="wa-title">New Order — Amaka's Boutique</div>
+                        <div class="wa-from">vendly.com/amaka</div>
+                        <div class="wa-line"><span>Ankara Tote Bag × 1</span><span>₦12,500</span></div>
+                        <div class="wa-line"><span>Men's Linen Shirt × 1</span><span>₦8,000</span></div>
+                        <div class="wa-total"><span>Total</span><span>₦20,500</span></div>
+                        <div class="wa-time">12:34 PM · Delivered</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="feature-card fade-up">
@@ -1131,12 +1247,50 @@
     </div>
 </section>
 
+<section class="pricing-section">
+    <div class="section-label">Pricing</div>
+    <h2 class="section-heading">Simple plans for selling on WhatsApp</h2>
+    <p class="section-sub">Start on Free and move to Pro when you want a custom link, deeper insights, and faster support.</p>
+
+    <div class="pricing-grid">
+        <div class="pricing-card card fade-up">
+            <div class="plan-badge">Free plan</div>
+            <h3>Free</h3>
+            <p class="plan-price">Forever free</p>
+            <ul class="plan-list">
+                <li>Create your store</li>
+                <li>Add unlimited products</li>
+                <li>Receive WhatsApp orders</li>
+            </ul>
+        </div>
+
+        <div class="pricing-card card best-value fade-up delay-1">
+            <div class="plan-badge">Best value</div>
+            <h3>Pro</h3>
+            <p class="plan-price">₦4,000 / month<br>or ₦40,000 / year</p>
+            <p class="plan-note">Save 2 months with annual billing</p>
+            <ul class="plan-list">
+                <li>Custom store link</li>
+                <li>Priority support</li>
+                <li>Order history & analytics</li>
+            </ul>
+        </div>
+    </div>
+    <div class="pricing-action fade-up delay-2">
+        <a href="#signup" class="btn btn-primary btn-large">Start free, upgrade anytime</a>
+    </div>
+    <div class="referral-callout fade-up delay-3">
+        <p id="referral-copy"></p>
+        <p class="referral-note">Referral is paid on every subscription payment, including renewals.</p>
+    </div>
+</section>
+
 <!-- CTA -->
 <section id="signup" class="cta-section">
     <div class="cta-glow"></div>
     <div class="section-label">Get started today</div>
-    <h2 class="section-heading fade-up">Create your free store<br>in 2 minutes</h2>
-    <p class="section-sub fade-up delay-1">Join sellers already using Vendly to share their products and receive clean, organised orders on WhatsApp.</p>
+    <h2 class="section-heading fade-up">Create your free store in minutes.</h2>
+    <p class="section-sub fade-up delay-1">Free to start. No card required.</p>
 
     <div class="cta-form fade-up delay-2">
         <input type="email" class="cta-input" placeholder="Enter your email address" id="emailInput">
@@ -1152,9 +1306,7 @@
     <ul class="footer-links">
         <li><a href="#how">How it works</a></li>
         <li><a href="#why">Why Vendly</a></li>
-        <li><a href="#">Privacy</a></li>
-        <li><a href="#">Terms</a></li>
-        <!-- CHANGE 5: added login link in footer -->
+        <li><a href="#signup">Start free</a></li>
         <li><a href="#" data-nav="login">Log in</a></li>
     </ul>
     <div class="footer-copy">© 2026 Vendly, A Product Of ZenLink Technologies</div>
@@ -1171,6 +1323,29 @@
     }, { threshold: 0.12 });
 
     document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    const REFERRAL_PERCENT = 0.25;
+    const MONTHLY_PLAN = 4000;
+    const YEARLY_PLAN = 40000;
+
+    function formatNaira(amount) {
+        return `₦${Number(amount).toLocaleString('en-NG')}`;
+    }
+
+    function calculateReferralBonus(planAmount) {
+        return Math.round(Number(planAmount) * REFERRAL_PERCENT);
+    }
+
+    function renderReferralBonus() {
+        const monthlyBonus = formatNaira(calculateReferralBonus(MONTHLY_PLAN));
+        const yearlyBonus = formatNaira(calculateReferralBonus(YEARLY_PLAN));
+        const monthlyAmount = formatNaira(MONTHLY_PLAN);
+        const yearlyAmount = formatNaira(YEARLY_PLAN);
+
+        const copy = `Referral bonus: earn ${REFERRAL_PERCENT * 100}% every time a seller you refer pays. That means ${monthlyBonus} for each ${monthlyAmount} monthly plan and ${yearlyBonus} for every ${yearlyAmount} yearly plan — including renewals.`;
+        const target = document.getElementById('referral-copy');
+        if (target) target.textContent = copy;
+    }
 
     // CHANGE 4: signup handler now redirects to signup page
     function handleSignup() {
@@ -1191,6 +1366,12 @@
         // Valid email — go to signup page
         VendlyNav.go('signup');
     }
+
+    function initReferralSection() {
+        renderReferralBonus();
+    }
+
+    initReferralSection();
 
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
