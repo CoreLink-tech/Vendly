@@ -4,6 +4,28 @@
 create extension if not exists "pgcrypto";
 create extension if not exists "uuid-ossp";
 
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'auth'
+      and table_name = 'users'
+      and column_name = 'ambassador_status'
+  ) then
+    alter table auth.users
+      add column ambassador_status text not null default 'none';
+  end if;
+
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'users_ambassador_status_check'
+  ) then
+    alter table auth.users
+      add constraint users_ambassador_status_check
+      check (ambassador_status in ('none', 'pending', 'accepted', 'declined'));
+  end if;
+end $$;
+
 create table if not exists public.stores (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references auth.users(id) on delete cascade,
@@ -103,10 +125,12 @@ create table if not exists public.referral_signups (
   referred_store_name text,
   referred_slug text,
   reward_amount numeric not null default 1000,
-  status text not null default 'active',
+  status text not null default 'pending',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.referral_signups alter column status set default 'pending';
 
 create table if not exists public.withdrawal_requests (
   id uuid primary key default gen_random_uuid(),
@@ -277,7 +301,7 @@ begin
     raise exception 'Admin access is already configured for this project.';
   end if;
 
-  insert into public.admin_users (user_id, email)
+  insert into public.admin_users (user_id, email)g
   values (auth.uid(), public.current_auth_email());
 
   return true;
@@ -373,7 +397,7 @@ begin
     nullif(trim(p_store_name), ''),
     nullif(trim(lower(p_slug)), ''),
     1000,
-    'active'
+    'pending'
   )
   on conflict (referred_user_id) do update
     set referred_name = excluded.referred_name,
@@ -406,6 +430,138 @@ as $$
       and status in ('pending', 'approved', 'paid')
   )
   select greatest((select total from earned) - (select total from reserved), 0);
+$$;
+
+create or replace function public.activate_referral_signup_for_referred_user(
+  p_referred_user_id uuid,
+  p_plan_type text
+)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  normalized_plan text := public.normalize_subscription_plan(p_plan_type);
+  updated_count integer;
+begin
+  if p_referred_user_id is null then
+    return 0;
+  end if;
+
+  update public.referral_signups
+  set status = 'active',
+      reward_amount = 1000
+  where referred_user_id = p_referred_user_id
+    and status = 'pending'
+  returning 1 into updated_count;
+
+  return coalesce(updated_count, 0);
+end;
+$$;
+
+-- Ambassador: add column to auth.users to track ambassador program status
+do $$
+begin
+  if not exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'auth' and table_name = 'users' and column_name = 'ambassador_status'
+  ) then
+    alter table auth.users add column ambassador_status text not null default 'none';
+  end if;
+end $$;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'users_ambassador_status_check'
+  ) then
+    alter table auth.users add constraint users_ambassador_status_check check (ambassador_status in ('none','pending','accepted','declined'));
+  end if;
+end $$;
+
+-- RPC: return current user's ambassador status
+create or replace function public.get_my_ambassador_status()
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce((select ambassador_status from auth.users where id = auth.uid()), 'none');
+$$;
+
+-- RPC: set current user's ambassador_status to 'pending' (application)
+create or replace function public.apply_for_ambassador()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Sign in before applying.';
+  end if;
+
+  update auth.users
+  set ambassador_status = 'pending'
+  where id = auth.uid();
+end;
+$$;
+
+-- Admin RPC: list pending ambassador applications
+create or replace function public.admin_ambassador_applications()
+returns table(
+  user_id uuid,
+  name text,
+  username text,
+  email text,
+  phone text,
+  ambassador_status text,
+  applied_at timestamptz
+)
+language sql
+security definer
+set search_path = public
+as $$
+  select
+    u.id as user_id,
+    coalesce(nullif(u.user_metadata->>'fullName',''), nullif(u.user_metadata->>'firstName',''), (p.first_name || ' ' || p.last_name), '') as name,
+    coalesce(nullif(u.user_metadata->>'slug',''), nullif(u.user_metadata->>'username',''), split_part(u.email, '@', 1)) as username,
+    lower(coalesce(u.email, u.user_metadata->>'email')) as email,
+    coalesce(u.user_metadata->>'phone', '') as phone,
+    coalesce(u.ambassador_status, 'none') as ambassador_status,
+    u.created_at as applied_at
+  from auth.users u
+  left join public.profiles p on p.id = u.id
+  where coalesce(u.ambassador_status, 'none') = 'pending'
+  order by u.created_at desc;
+$$;
+
+-- Admin RPC: set ambassador status for a user
+create or replace function public.admin_set_ambassador_status(
+  p_user_id uuid,
+  p_status text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'You do not have access to update ambassador status.';
+  end if;
+
+  if p_status not in ('none','pending','accepted','declined') then
+    raise exception 'Invalid ambassador status.';
+  end if;
+
+  update auth.users
+  set ambassador_status = p_status
+  where id = p_user_id;
+end;
 $$;
 
 create or replace function public.create_withdrawal_request(
@@ -644,6 +800,8 @@ begin
     raise exception 'No store record was found for this account.';
   end if;
 
+  perform public.activate_referral_signup_for_referred_user(auth.uid(), normalized_plan);
+
   return jsonb_build_object(
     'message', 'Activation successful. Your store is live again.',
     'store_id', updated_store_id,
@@ -735,6 +893,8 @@ begin
   if updated_row.id is null then
     raise exception 'Vendor store was not found.';
   end if;
+
+  perform public.activate_referral_signup_for_referred_user(p_owner_id, normalized_plan);
 
   return updated_row;
 end;
@@ -945,6 +1105,111 @@ begin
 end;
 $$;
 
+create or replace function public.get_my_ambassador_status()
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(ambassador_status, 'none')
+  from auth.users
+  where id = auth.uid();
+$$;
+
+drop function if exists public.apply_for_ambassador();
+create or replace function public.apply_for_ambassador()
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'You must be signed in to apply as an ambassador.';
+  end if;
+
+  update auth.users
+  set ambassador_status = 'pending'
+  where id = auth.uid();
+
+  return 'pending';
+end;
+$$;
+
+drop function if exists public.admin_ambassador_applications();
+create or replace function public.admin_ambassador_applications()
+returns table (
+  user_id uuid,
+  name text,
+  username text,
+  email text,
+  phone text,
+  ambassador_status text
+)
+language sql
+security definer
+set search_path = public
+as $$
+  select
+    u.id as user_id,
+    coalesce(nullif(trim(coalesce(p.first_name, '') || ' ' || coalesce(p.last_name, '')), ''), s.name, lower(coalesce(u.email, '')), 'Vendor') as name,
+    coalesce(
+      nullif(trim(u.user_metadata ->> 'username'), ''),
+      nullif(trim(s.slug), ''),
+      lower(split_part(coalesce(u.email, ''), '@', 1)),
+      u.id::text
+    ) as username,
+    lower(coalesce(u.email, '')) as email,
+    coalesce(
+      nullif(trim(u.user_metadata ->> 'phone'), ''),
+      nullif(trim(u.phone), ''),
+      nullif(trim(s.whatsapp), ''),
+      ''
+    ) as phone,
+    coalesce(u.ambassador_status, 'none') as ambassador_status
+  from auth.users u
+  left join public.profiles p on p.id = u.id
+  left join public.stores s on s.owner_id = u.id
+  where public.is_admin()
+    and u.ambassador_status = 'pending'
+  order by u.email nulls last;
+$$;
+
+create or replace function public.admin_set_ambassador_status(
+  p_user_id uuid,
+  p_status text
+)
+returns auth.users
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  normalized_status text := lower(trim(coalesce(p_status, '')));
+  updated_user auth.users%rowtype;
+begin
+  if not public.is_admin() then
+    raise exception 'You do not have access to update ambassador applications.';
+  end if;
+
+  if normalized_status not in ('none', 'pending', 'accepted', 'declined') then
+    raise exception 'Unsupported ambassador status: %', normalized_status;
+  end if;
+
+  update auth.users
+  set ambassador_status = normalized_status
+  where id = p_user_id
+  returning * into updated_user;
+
+  if updated_user.id is null then
+    raise exception 'Ambassador user not found.';
+  end if;
+
+  return updated_user;
+end;
+$$;
+
 grant execute on function public.is_admin() to anon, authenticated;
 grant execute on function public.bootstrap_admin_access() to authenticated;
 grant execute on function public.ensure_my_referral_code(text) to authenticated;
@@ -955,6 +1220,10 @@ grant execute on function public.log_store_view(uuid, uuid, text, text, text, te
 grant execute on function public.log_product_view(uuid, uuid, uuid, text) to anon, authenticated;
 grant execute on function public.create_storefront_order(uuid, uuid, jsonb, numeric, text, text, text, text) to anon, authenticated;
 grant execute on function public.redeem_activation_code(text) to authenticated;
+grant execute on function public.apply_for_ambassador() to authenticated;
+grant execute on function public.get_my_ambassador_status() to authenticated;
+grant execute on function public.admin_ambassador_applications() to authenticated;
+grant execute on function public.admin_set_ambassador_status(uuid, text) to authenticated;
 grant execute on function public.admin_generate_activation_code(text, text, numeric, text) to authenticated;
 grant execute on function public.admin_activate_vendor_subscription(uuid, text, timestamptz) to authenticated;
 grant execute on function public.admin_set_store_status(uuid, text) to authenticated;

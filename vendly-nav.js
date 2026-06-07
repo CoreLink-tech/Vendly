@@ -20,6 +20,7 @@ const PAGES = {
   account: 'accounts.html',
   activate: 'activate.html',
   referral: 'referral.html',
+  ambassador: 'ambassador.html',
 };
 
 const APP_BASE_URL = 'https://vendly-snowy.vercel.app';
@@ -130,8 +131,285 @@ function normalizeStoreStatus(value) {
     : null;
 }
 
-function planDurationDays(plan) {
-  return normalizeSubscriptionPlan(plan) === 'yearly' ? 365 : 30;
+function normalizeAmbassadorStatus(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  return ['none', 'pending', 'accepted', 'declined'].includes(normalized)
+    ? normalized
+    : 'none';
+}
+
+function getAmbassadorStatus(user) {
+  if (!user) return 'none';
+  return normalizeAmbassadorStatus(
+    firstPresentValue(
+      user.ambassador_status,
+      user.ambassadorStatus,
+      user.user_metadata?.ambassador_status,
+      user.user_metadata?.ambassadorStatus,
+      user.userMetadata?.ambassador_status,
+      user.userMetadata?.ambassadorStatus,
+      'none'
+    )
+  );
+}
+
+function buildAmbassadorNavEntry() {
+  const navItem = document.createElement('button');
+  navItem.type = 'button';
+  navItem.dataset.ambassadorEntry = 'true';
+  navItem.className = 'nav-item ambassador-nav-item';
+  return navItem;
+}
+
+function renderAmbassadorNav() {
+  const sidebarNav = document.querySelector('.sidebar-nav');
+  if (!sidebarNav) return;
+
+  const existing = sidebarNav.querySelector('[data-ambassador-entry]');
+  if (existing) existing.remove();
+
+  const user = Auth.getUser() || Auth.getCachedUser();
+  const status = getAmbassadorStatus(user);
+  const referralLink = sidebarNav.querySelector('a[href="referral.html"]');
+
+  if (status === 'accepted') {
+    if (referralLink) referralLink.style.display = 'none';
+    const ambassadorLink = document.createElement('a');
+    ambassadorLink.className = 'sidebar-link';
+    ambassadorLink.href = PAGES.ambassador;
+    ambassadorLink.dataset.nav = 'ambassador';
+    ambassadorLink.dataset.ambassadorEntry = 'true';
+    ambassadorLink.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2v20"></path><path d="M22 12H2"></path></svg><span>Ambassador</span>`;
+    if (referralLink) {
+      referralLink.insertAdjacentElement('afterend', ambassadorLink);
+    } else {
+      sidebarNav.appendChild(ambassadorLink);
+    }
+    wireNavAttributes();
+    return;
+  }
+
+  if (referralLink) referralLink.style.display = '';
+
+  const actionButton = buildAmbassadorNavEntry();
+  if (status === 'pending') {
+    actionButton.disabled = true;
+    actionButton.classList.add('nav-item-disabled');
+    actionButton.textContent = 'Application Pending';
+  } else {
+    actionButton.textContent = 'Become an Ambassador';
+    actionButton.addEventListener('click', openAmbassadorModal);
+  }
+
+  if (referralLink && referralLink.parentNode) {
+    referralLink.insertAdjacentElement('beforebegin', actionButton);
+  } else {
+    sidebarNav.prepend(actionButton);
+  }
+  wireNavAttributes();
+}
+
+function ensureAmbassadorStyles() {
+  if (document.getElementById('ambassadorStyles')) return;
+  const style = document.createElement('style');
+  style.id = 'ambassadorStyles';
+  style.textContent = `
+    .ambassador-nav-item {
+      border: none;
+      background: none;
+      padding: 10px 12px;
+      border-radius: 9px;
+      color: var(--grey-dark);
+      cursor: pointer;
+      text-align: left;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.18s ease;
+    }
+    .ambassador-nav-item:hover:not([disabled]) {
+      background: #f3f4f6;
+      color: var(--black);
+    }
+    .ambassador-nav-item[disabled], .nav-item-disabled {
+      opacity: 0.56;
+      cursor: default;
+      pointer-events: none;
+    }
+    #ambassadorModal {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #ambassadorModal.open { display: flex; }
+    #ambassadorModal .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(2px);
+    }
+    #ambassadorModal .modal-content {
+      position: relative;
+      width: min(540px, 100%);
+      background: white;
+      border-radius: 22px;
+      padding: 30px 26px;
+      box-shadow: 0 32px 72px rgba(15,23,42,0.18);
+      display: grid;
+      gap: 18px;
+      z-index: 1;
+    }
+    #ambassadorModal .modal-close {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      border: none;
+      background: none;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      color: var(--grey-dark);
+    }
+    #ambassadorModal h2 {
+      margin: 0;
+      font-size: 1.55rem;
+      color: var(--black);
+    }
+    #ambassadorModal .modal-copy {
+      color: var(--grey-mid);
+      line-height: 1.7;
+    }
+    #ambassadorModal label {
+      display: block;
+      margin-top: 10px;
+      margin-bottom: 8px;
+      font-size: 0.88rem;
+      color: var(--grey-dark);
+      font-weight: 600;
+    }
+    #ambassadorModal input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid #d1d5db;
+      font-size: 0.95rem;
+      color: var(--black);
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    #ambassadorModal input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 4px rgba(16,185,129,0.12);
+    }
+    #ambassadorModal .btn {
+      width: 100%;
+      justify-content: center;
+    }
+    #ambassadorModal .modal-feedback {
+      margin-top: 6px;
+      color: var(--green);
+      min-height: 1.4rem;
+      font-size: 0.95rem;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function createAmbassadorModal() {
+  ensureAmbassadorStyles();
+  if (document.getElementById('ambassadorModal')) return;
+
+  const modal = document.createElement('div');
+  modal.id = 'ambassadorModal';
+  modal.className = 'ambassador-modal';
+  modal.innerHTML = `
+    <div class="modal-backdrop" data-ambassador-close></div>
+    <div class="modal-content">
+      <button type="button" class="modal-close" data-ambassador-close>×</button>
+      <h2>Become a Vendly Ambassador</h2>
+      <p class="modal-copy">Earn 25% every month on every paying referral you bring in. Forever.</p>
+      <form id="ambassadorForm">
+        <label>Full name</label>
+        <input type="text" name="fullName" id="ambassadorFullName" placeholder="Your full name" autocomplete="name" required>
+        <label>Phone number</label>
+        <input type="tel" name="phone" id="ambassadorPhone" placeholder="08012345678" autocomplete="tel" required>
+        <button type="submit" class="btn btn-primary">Send Application</button>
+        <div class="modal-feedback" id="ambassadorFeedback"></div>
+      </form>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  modal.addEventListener('click', event => {
+    if (event.target.dataset.ambassadorClose !== undefined) {
+      event.preventDefault();
+      closeAmbassadorModal();
+    }
+  });
+
+  const form = modal.querySelector('#ambassadorForm');
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    await submitAmbassadorApplication();
+  });
+}
+
+function openAmbassadorModal() {
+  createAmbassadorModal();
+  const modal = document.getElementById('ambassadorModal');
+  if (!modal) return;
+  modal.classList.add('open');
+}
+
+function closeAmbassadorModal() {
+  const modal = document.getElementById('ambassadorModal');
+  modal?.classList.remove('open');
+}
+
+async function submitAmbassadorApplication() {
+  const fullNameInput = document.getElementById('ambassadorFullName');
+  const phoneInput = document.getElementById('ambassadorPhone');
+  const feedback = document.getElementById('ambassadorFeedback');
+  if (!fullNameInput || !phoneInput || !feedback) return;
+
+  const fullName = fullNameInput.value.trim();
+  const phone = phoneInput.value.trim();
+  if (!fullName || fullName.length < 2) {
+    feedback.textContent = 'Enter your full name.';
+    return;
+  }
+  if (!phone) {
+    feedback.textContent = 'Enter your phone number.';
+    return;
+  }
+
+  const user = Auth.getUser() || Auth.getCachedUser();
+  const username = user?.slug || user?.email?.split('@')[0] || user?.id || 'unknown';
+  const email = user?.email || '';
+  const userId = user?.id || '';
+  const message = encodeURIComponent(
+    `New Ambassador Application\nName: ${fullName}\nPhone: ${phone}\nUsername: ${username}\nEmail: ${email}\nUser ID: ${userId}`
+  );
+  window.open(`https://wa.me/2349168311809?text=${message}`, '_blank');
+
+  try {
+    const client = await Auth.getClient();
+    const { data, error } = await client.rpc('apply_for_ambassador');
+    if (error) throw error;
+    const enriched = Auth.getUser();
+    if (enriched) {
+      enriched.ambassador_status = 'pending';
+      localStorage.setItem('vendly_user', JSON.stringify(enriched));
+    }
+    feedback.textContent = 'Application sent. You\'ll hear from us within 24 hours.';
+    renderAmbassadorNav();
+    setTimeout(() => closeAmbassadorModal(), 1600);
+  } catch (err) {
+    feedback.textContent = err.message || 'Could not send your application right now.';
+  }
 }
 
 function computeDaysLeft(value) {
@@ -517,11 +795,18 @@ const Auth = {
 
       // Role lookup: admins should be kept inside the admin portal only.
       try {
-        const { data: isAdmin } = await client.rpc('is_admin');
+        const [{ data: isAdmin }, { data: ambassadorStatus }] = await Promise.all([
+          client.rpc('is_admin'),
+          client.rpc('get_my_ambassador_status')
+        ]);
         enriched.isAdmin = !!isAdmin;
+        enriched.ambassador_status = normalizeAmbassadorStatus(ambassadorStatus);
       } catch (err) {
         enriched.isAdmin = false;
-        console.warn('Could not determine admin status', err?.message || err);
+        enriched.ambassador_status = normalizeAmbassadorStatus(
+          firstPresentValue(user.ambassador_status, user.ambassadorStatus, cachedUser?.ambassador_status, cachedUser?.ambassadorStatus, 'none')
+        );
+        console.warn('Could not determine admin or ambassador status', err?.message || err);
       }
     }
 
@@ -662,7 +947,7 @@ const Nav = {
   },
 };
 
-const PROTECTED = ['dashboard', 'products', 'orders', 'analytics', 'account', 'activate', 'referral', 'admin', 'adminWithdrawals', 'adminCodes', 'adminAccounts'];
+const PROTECTED = ['dashboard', 'products', 'orders', 'analytics', 'account', 'activate', 'referral', 'ambassador', 'admin', 'adminWithdrawals', 'adminCodes', 'adminAccounts'];
 const AUTH_ONLY = ['login', 'signup', 'adminLogin'];
 const ADMIN_ONLY = ['admin', 'adminWithdrawals', 'adminCodes', 'adminAccounts'];
 const VENDOR_ONLY = ['dashboard', 'products', 'orders', 'analytics', 'account', 'activate', 'referral'];
@@ -747,6 +1032,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await Auth.restoreSession();
   await runGuards();
   wireNavAttributes();
+  renderAmbassadorNav();
   wireLogout();
 });
 
