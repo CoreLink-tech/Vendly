@@ -538,28 +538,30 @@
     };
   }
 
-  function renderStoreBanner() {
-    const bannerLink = byId('storeBannerLink');
-    const bannerMeta = byId('storeBannerMeta');
-    const bannerStatus = byId('storeStatusChip');
-    const resolvedSlug = state.store?.slug || getUserSlug();
-    const hasStoreLink = !!resolvedSlug;
-    const canonicalStoreUrl = getCanonicalStoreUrl();
+function renderStoreBanner() {
+     const bannerLink = byId('storeBannerLink');
+     const bannerMeta = byId('storeBannerMeta');
+     const bannerStatus = byId('storeStatusChip');
+     const resolvedSlug = state.store?.slug || getUserSlug();
+     const hasStoreLink = !!resolvedSlug;
+     const canonicalStoreUrl = getCanonicalStoreUrl();
 
-    if (bannerLink) {
-      bannerLink.textContent = hasStoreLink ? getStoreLabel() : 'Choose a store name to generate your link';
-      bannerLink.title = hasStoreLink ? getStoreLabel() : '';
-    }
-    if (bannerMeta) {
-      bannerMeta.textContent = hasStoreLink
-        ? (state.access?.message || 'Your storefront link updates as soon as your account is ready.')
-        : 'Add or restore your store name and slug so customers can open your storefront.';
-    }
+     if (bannerLink) {
+       bannerLink.textContent = hasStoreLink
+         ? getStoreLabel()
+         : 'Store link not set up yet';
+       bannerLink.title = hasStoreLink ? getStoreLabel() : '';
+     }
+     if (bannerMeta) {
+       bannerMeta.textContent = hasStoreLink
+         ? (state.access?.message || 'Your storefront link updates as soon as your account is ready.')
+         : 'Go to Activate Store to set up your storefront.';
+     }
 
-    if (bannerStatus) {
-      bannerStatus.textContent = state.access?.label || 'Store ready';
-      bannerStatus.className = `status-chip ${state.access?.state || 'active'}`;
-    }
+     if (bannerStatus) {
+       bannerStatus.textContent = state.access?.label || 'Store ready';
+       bannerStatus.className = `status-chip ${state.access?.state || 'active'}`;
+     }
 
     const copyBtn = byId('copyStoreLinkBtn');
     if (copyBtn) {
@@ -1760,24 +1762,31 @@
     } catch (err) {
       showToast(err.message || 'Could not delete your account.', 'error');
     }
-  }
+}
 
-  function wireShell() {
-    const toggle = byId('sidebarToggle');
-    const backdrop = byId('sidebarBackdrop');
-    if (toggle) {
-      toggle.addEventListener('click', () => {
-        document.body.classList.toggle('sidebar-open');
-      });
-    }
-    if (backdrop) {
-      backdrop.addEventListener('click', () => {
+function wireShell() {
+  const toggle = byId('sidebarToggle');
+  const backdrop = byId('sidebarBackdrop');
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      document.body.classList.toggle('sidebar-open');
+    });
+  }
+  if (backdrop) {
+    backdrop.addEventListener('click', () => {
+      document.body.classList.remove('sidebar-open');
+    });
+  }
+  document.querySelectorAll('.sidebar-link').forEach(link => {
+    link.addEventListener('click', () => {
+      if (link.closest('.portal-sidebar') && window.innerWidth <= 960) {
         document.body.classList.remove('sidebar-open');
-      });
-    }
-  }
+      }
+    });
+  });
+}
 
-  function wirePageEvents() {
+function wirePageEvents() {
     document.body.addEventListener('click', event => {
       const productAction = event.target.closest('[data-action="edit-product"], [data-action="toggle-product"], [data-action="delete-product"], [data-action="confirm-delete-product"], [data-action="cancel-delete-product"]');
       if (productAction) {
@@ -1871,42 +1880,67 @@
     if (state.page === 'account') renderAccountPage(metrics);
   }
 
-  async function init() {
-    state.page = getCurrentPage();
-    wireShell();
-    wirePageEvents();
+async function init() {
+  state.page = getCurrentPage();
+  wireShell();
+  wirePageEvents();
 
+  try {
     await window.VendlyAuth.restoreSession().catch(() => false);
-    state.user = await window.VendlyAuth.refreshUser().catch(() => window.VendlyAuth.getUser()) || window.VendlyAuth.getUser();
-    state.store = getStoreFromUser(state.user);
-    state.access = window.VendlyStores.getAccessState(state.store || {});
-    
-    // Check if user is admin BEFORE rendering to avoid flashing ambassador nav
-    try {
-      const client = await getClient();
-      if (client) {
-        const { data, error } = await client.rpc('is_admin');
-        state.isAdmin = !error && !!data;
-      }
-    } catch (err) {
-      console.warn('Could not check admin status:', err.message);
-      state.isAdmin = false;
+  } catch (_err) {
+    console.warn('Session restore failed:', _err?.message || _err);
+  }
+  try {
+    state.user = await window.VendlyAuth.refreshUser().catch(() => null) || window.VendlyAuth.getUser() || null;
+  } catch (_err) {
+    console.warn('User refresh failed:', _err?.message || _err);
+    state.user = null;
+  }
+  state.store = getStoreFromUser(state.user);
+  state.access = window.VendlyStores.getAccessState(state.store || {});
+
+  // Check if user is admin BEFORE rendering to avoid flashing ambassador nav
+  try {
+    const client = await getClient();
+    if (client) {
+      const { data, error } = await client.rpc('is_admin');
+      state.isAdmin = !error && !!data;
     }
-
-    renderAll();
-
-    // Re-render ambassador nav after admin status is known
-    if (window.VendlyNav && typeof window.VendlyNav.renderAmbassadorNav === 'function') {
-      window.VendlyNav.renderAmbassadorNav();
-    }
-
-    await loadAllData();
-
-    if (state.page === 'products') resetProductForm();
-    renderAll();
+  } catch (err) {
+    console.warn('Could not check admin status:', err?.message || err);
+    state.isAdmin = false;
   }
 
-  document.addEventListener('DOMContentLoaded', init);
+  try {
+    renderAll();
+  } catch (_err) {
+    console.warn('Initial render failed:', _err?.message || _err);
+  }
+
+  // Re-render ambassador nav after admin status is known
+  if (window.VendlyNav && typeof window.VendlyNav.renderAmbassadorNav === 'function') {
+    try {
+      window.VendlyNav.renderAmbassadorNav();
+    } catch (_err) {
+      console.warn('Ambassador nav render failed:', _err?.message || _err);
+    }
+  }
+
+  try {
+    await loadAllData();
+  } catch (_err) {
+    console.warn('Data loading failed:', _err?.message || _err);
+  }
+
+  if (state.page === 'products') resetProductForm();
+  try {
+    renderAll();
+  } catch (_err) {
+    console.warn('Final render failed:', _err?.message || _err);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
 
   // Export isAdmin status for use by vendly-nav.js
   window.VendlyPortal = {
