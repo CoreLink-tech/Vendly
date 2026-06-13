@@ -15,6 +15,7 @@
     user: null,
     store: null,
     access: null,
+    isAdmin: false,
     products: [],
     orders: [],
     storeViews: [],
@@ -800,6 +801,13 @@
                 <button class="btn btn-outline btn-sm" type="button" data-action="edit-product" data-product-id="${escapeHtml(product.id)}">Edit</button>
                 <button class="btn btn-outline btn-sm" type="button" data-action="toggle-product" data-product-id="${escapeHtml(product.id)}">${isLive ? 'Hide' : 'Make live'}</button>
                 <button class="btn btn-light-danger btn-sm" type="button" data-action="delete-product" data-product-id="${escapeHtml(product.id)}">Delete</button>
+              </div>
+              <div class="delete-confirm-row" data-product-id="${escapeHtml(product.id)}" style="display:none;">
+                <div class="delete-confirm-text">Delete this product permanently?</div>
+                <div class="delete-confirm-actions">
+                  <button class="btn btn-light-danger btn-sm" type="button" data-action="confirm-delete-product" data-product-id="${escapeHtml(product.id)}">Confirm</button>
+                  <button class="btn btn-outline btn-sm" type="button" data-action="cancel-delete-product" data-product-id="${escapeHtml(product.id)}">Cancel</button>
+                </div>
               </div>`
             : `<div class="card-action-row">
                 <a class="btn btn-outline btn-sm" href="produc.html">Manage in products</a>
@@ -1628,7 +1636,6 @@
   async function deleteProduct(productId) {
     const product = getProductFromState(productId);
     if (!product) return;
-    if (!window.confirm(`Delete "${product.name}" from your store?`)) return;
 
     const client = await getClient();
     if (!client || !state.user?.id) {
@@ -1636,7 +1643,7 @@
       return;
     }
     try {
-      const { error } = await client.from('products').delete().eq('id', productId);
+      const { error } = await client.from('products').delete().eq('id', productId).eq('owner_id', state.user.id);
       if (error) throw error;
       if (product.image_url) await removeProductImage(product.image_url);
 
@@ -1772,12 +1779,28 @@
 
   function wirePageEvents() {
     document.body.addEventListener('click', event => {
-      const productAction = event.target.closest('[data-action="edit-product"], [data-action="toggle-product"], [data-action="delete-product"]');
+      const productAction = event.target.closest('[data-action="edit-product"], [data-action="toggle-product"], [data-action="delete-product"], [data-action="confirm-delete-product"], [data-action="cancel-delete-product"]');
       if (productAction) {
         const productId = productAction.dataset.productId;
-        if (productAction.dataset.action === 'edit-product') populateProductForm(getProductFromState(productId));
-        if (productAction.dataset.action === 'toggle-product') toggleProductStatus(productId);
-        if (productAction.dataset.action === 'delete-product') deleteProduct(productId);
+        if (productAction.dataset.action === 'edit-product') {
+          populateProductForm(getProductFromState(productId));
+        }
+        if (productAction.dataset.action === 'toggle-product') {
+          toggleProductStatus(productId);
+        }
+        if (productAction.dataset.action === 'delete-product') {
+          const card = productAction.closest('[data-product-id]');
+          const confirmRow = card?.querySelector('.delete-confirm-row');
+          if (confirmRow) confirmRow.style.display = 'flex';
+        }
+        if (productAction.dataset.action === 'confirm-delete-product') {
+          await deleteProduct(productId);
+        }
+        if (productAction.dataset.action === 'cancel-delete-product') {
+          const card = productAction.closest('[data-product-id]');
+          const confirmRow = card?.querySelector('.delete-confirm-row');
+          if (confirmRow) confirmRow.style.display = 'none';
+        }
         return;
       }
 
@@ -1853,17 +1876,30 @@
     wireShell();
     wirePageEvents();
 
-    state.user = window.VendlyAuth.getUser?.()
-      || window.VendlyAuth.getCachedUser?.()
-      || null;
-    state.store = getStoreFromUser(state.user);
-    state.access = window.VendlyStores.getAccessState(state.store || {});
-    renderAll();
-
     await window.VendlyAuth.restoreSession().catch(() => false);
     state.user = await window.VendlyAuth.refreshUser().catch(() => window.VendlyAuth.getUser()) || window.VendlyAuth.getUser();
     state.store = getStoreFromUser(state.user);
     state.access = window.VendlyStores.getAccessState(state.store || {});
+    
+    // Check if user is admin BEFORE rendering to avoid flashing ambassador nav
+    try {
+      const client = await getClient();
+      if (client) {
+        const { data, error } = await client.rpc('is_admin');
+        state.isAdmin = !error && !!data;
+      }
+    } catch (err) {
+      console.warn('Could not check admin status:', err.message);
+      state.isAdmin = false;
+    }
+
+    renderAll();
+
+    // Re-render ambassador nav after admin status is known
+    if (window.VendlyNav && typeof window.VendlyNav.renderAmbassadorNav === 'function') {
+      window.VendlyNav.renderAmbassadorNav();
+    }
+
     await loadAllData();
 
     if (state.page === 'products') resetProductForm();
@@ -1871,4 +1907,9 @@
   }
 
   document.addEventListener('DOMContentLoaded', init);
+
+  // Export isAdmin status for use by vendly-nav.js
+  window.VendlyPortal = {
+    getIsAdmin: () => state.isAdmin
+  };
 })();

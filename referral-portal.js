@@ -9,7 +9,9 @@
     referralLink: '',
     referrals: [],
     withdrawals: [],
-    availableBalance: 0,
+    referralAvailableBalance: 0,
+    ambassadorAvailableBalance: 0,
+    selectedWithdrawalSource: 'referral',
     totalEarned: 0,
     totalWithdrawn: 0
   };
@@ -109,12 +111,24 @@
     state.referrals = data || [];
   }
 
+  async function loadBalances(client) {
+    const [refResponse, ambassadorResponse] = await Promise.all([
+      client.rpc('referral_available_balance'),
+      client.rpc('ambassador_available_balance')
+    ]);
+
+    if (refResponse.error) throw refResponse.error;
+    if (ambassadorResponse.error) throw ambassadorResponse.error;
+
+    state.referralAvailableBalance = Number(refResponse.data || 0);
+    state.ambassadorAvailableBalance = Number(ambassadorResponse.data || 0);
+  }
+
   async function loadWithdrawals(client) {
     const { data, error } = await client
       .from('withdrawal_requests')
-      .select('id, amount, bank_name, account_number, account_name, status, requested_at, reviewed_at, admin_note')
+      .select('id, amount, bank_name, account_number, account_name, status, requested_at, reviewed_at, admin_note, source')
       .eq('owner_id', state.user.id)
-      .eq('source', 'referral')
       .order('requested_at', { ascending: false });
 
     if (error) throw error;
@@ -129,17 +143,15 @@
     state.totalWithdrawn = state.withdrawals
       .filter(row => row.status === 'paid')
       .reduce((sum, row) => sum + Number(row.amount || 0), 0);
-
-    const reserved = state.withdrawals
-      .filter(row => ['pending', 'approved', 'paid'].includes(row.status))
-      .reduce((sum, row) => sum + Number(row.amount || 0), 0);
-
-    state.availableBalance = Math.max(state.totalEarned - reserved, 0);
   }
 
   function renderSummary() {
-    byId('balanceDisplay').textContent = Number(state.availableBalance || 0).toLocaleString('en-NG');
-    byId('modalBalance').textContent = formatMoney(state.availableBalance);
+    byId('balanceDisplay').textContent = Number(state.referralAvailableBalance || 0).toLocaleString('en-NG');
+    byId('referralBalanceDisplay').textContent = Number(state.referralAvailableBalance || 0).toLocaleString('en-NG');
+    byId('ambassadorBalanceDisplay').textContent = Number(state.ambassadorAvailableBalance || 0).toLocaleString('en-NG');
+    byId('modalBalance').textContent = formatMoney(state.selectedWithdrawalSource === 'ambassador'
+      ? state.ambassadorAvailableBalance
+      : state.referralAvailableBalance);
     byId('totalReferrals').textContent = String(state.referrals.length);
     byId('totalEarned').textContent = formatMoney(state.totalEarned);
     byId('statReferrals').textContent = String(state.referrals.length);
@@ -149,8 +161,11 @@
       ? `${state.withdrawals.length} request${state.withdrawals.length === 1 ? '' : 's'} made`
       : 'no withdrawals yet';
 
+    const activeBalance = state.selectedWithdrawalSource === 'ambassador'
+      ? state.ambassadorAvailableBalance
+      : state.referralAvailableBalance;
     const withdrawBtn = byId('withdrawBtn');
-    withdrawBtn.disabled = state.availableBalance < 1000;
+    if (withdrawBtn) withdrawBtn.disabled = activeBalance < 1000;
 
     byId('refCode').textContent = state.referralCode || 'UNAVAILABLE';
     byId('refLinkText').innerHTML = `${escapeHtml(DISPLAY_HOST)}/signup.html?ref=<span id="refCode">${escapeHtml(state.referralCode || 'UNAVAILABLE')}</span>`;
@@ -225,6 +240,7 @@
             <th>Amount</th>
             <th>Bank</th>
             <th>Account</th>
+            <th>Source</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -235,6 +251,7 @@
               <td><strong style="color:var(--black)">${escapeHtml(formatMoney(row.amount))}</strong></td>
               <td style="color:var(--grey-mid)">${escapeHtml(row.bank_name)}</td>
               <td style="color:var(--grey-mid)">${escapeHtml(`${row.account_number} | ${row.account_name}`)}</td>
+              <td style="color:var(--grey-mid)">${escapeHtml(row.source || 'referral')}</td>
               <td><span class="badge ${escapeHtml(getWithdrawalBadge(row.status))}">${escapeHtml(row.status)}</span></td>
             </tr>
           `).join('')}
@@ -247,6 +264,7 @@
     await Promise.all([
       loadReferralCode(client),
       loadReferrals(client),
+      loadBalances(client),
       loadWithdrawals(client)
     ]);
     computeWallet();
@@ -260,6 +278,20 @@
       await window.VendlyAuth.restoreSession().catch(() => false);
       state.user = await window.VendlyAuth.refreshUser().catch(() => window.VendlyAuth.getUser()) || window.VendlyAuth.getUser();
       if (!state.user?.id) return;
+
+      // Check if user is admin - hide ambassador UI if so
+      try {
+        const client = await window.waitForSupabaseClient();
+        const { data, error } = await client.rpc('is_admin');
+        state.isAdmin = !error && !!data;
+      } catch (err) {
+        state.isAdmin = false;
+      }
+
+      // Re-render ambassador nav after admin status check
+      if (window.VendlyNav && typeof window.VendlyNav.renderAmbassadorNav === 'function') {
+        window.VendlyNav.renderAmbassadorNav();
+      }
 
       updateSidebarUser();
       await reloadData();
@@ -284,18 +316,24 @@
       return;
     }
 
-    if (state.availableBalance < 1000) {
-      showToast('Minimum withdrawal is NGN 1,000.', 'error');
+    const source = byId('withdrawSourceAmbassador')?.checked ? 'ambassador' : 'referral';
+    const availableBalance = source === 'ambassador'
+      ? state.ambassadorAvailableBalance
+      : state.referralAvailableBalance;
+
+    if (availableBalance < 1000) {
+      showToast('Minimum withdrawal is NGN 1,000 from the selected balance.', 'error');
       return;
     }
 
     try {
       const client = await window.waitForSupabaseClient();
       const { error } = await client.rpc('create_withdrawal_request', {
-        p_amount: state.availableBalance,
+        p_amount: availableBalance,
         p_bank_name: bank,
         p_account_number: accountNumber,
-        p_account_name: accountName
+        p_account_name: accountName,
+        p_source: source
       });
       if (error) throw error;
 
@@ -311,11 +349,22 @@
   }
 
   function openWithdraw() {
-    if (state.availableBalance < 1000) {
-      showToast('Minimum withdrawal is NGN 1,000.', 'error');
+    const source = byId('withdrawSourceAmbassador')?.checked ? 'ambassador' : 'referral';
+    state.selectedWithdrawalSource = source;
+    const availableBalance = source === 'ambassador'
+      ? state.ambassadorAvailableBalance
+      : state.referralAvailableBalance;
+
+    if (availableBalance < 1000) {
+      showToast('Minimum withdrawal is NGN 1,000 from the selected balance.', 'error');
       return;
     }
-    byId('modalBalance').textContent = formatMoney(state.availableBalance);
+
+    const referralRadio = byId('withdrawSourceReferral');
+    const ambassadorRadio = byId('withdrawSourceAmbassador');
+    if (referralRadio) referralRadio.checked = source === 'referral';
+    if (ambassadorRadio) ambassadorRadio.checked = source === 'ambassador';
+    byId('modalBalance').textContent = formatMoney(availableBalance);
     byId('withdrawModal').classList.add('open');
   }
 

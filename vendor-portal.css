@@ -1236,3 +1236,69 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 768px) {
+  .portal-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.24s ease;
+    z-index: 40;
+  }
+
+  body.sidebar-open .portal-sidebar {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    border: none;
+    background: rgba(11, 20, 13, 0.45);
+    z-index: 35;
+    display: none;
+  }
+
+  body.sidebar-open .sidebar-backdrop {
+    display: block;
+  }
+
+  .portal-main {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .topbar-actions .btn {
+    width: 100%;
+  }
+}
+
+.table-wrap {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.table-wrap table {
+  min-width: 600px;
+  width: 100%;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.admin-table-wrap table {
+  min-width: 800px;
+  width: 100%;
+}

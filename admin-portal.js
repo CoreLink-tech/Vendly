@@ -5,7 +5,8 @@
     accounts: [],
     withdrawals: [],
     activationCodes: [],
-    ambassadorApplications: []
+    ambassadorApplications: [],
+    ambassadorRequests: []
   };
 
   function byId(id) {
@@ -102,84 +103,95 @@
     }
   }
 
-  function renderSummary() {
-    if (!byId('adminSummary')) return;
-    const activeStores = state.accounts.filter(row => row.subscription_status === 'active').length;
-    const pendingWithdrawals = state.withdrawals.filter(row => row.status === 'pending').length;
-    const unusedCodes = state.activationCodes.filter(row => row.status === 'unused').length;
-    const pendingAmbassadors = state.ambassadorApplications.length;
-    const totalVendors = state.accounts.length;
-
-    byId('adminSummary').innerHTML = [
-      {
-        label: 'Total vendors',
-        value: String(totalVendors),
-        sub: 'Seller accounts currently in the project',
-        icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>'
-      },
-      {
-        label: 'Active stores',
-        value: String(activeStores),
-        sub: 'Stores currently live and shareable',
-        icon: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>'
-      },
-      {
-        label: 'Pending withdrawals',
-        value: String(pendingWithdrawals),
-        sub: 'Referral payout requests awaiting review',
-        icon: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>'
-      },
-      {
-        label: 'Unused codes',
-        value: String(unusedCodes),
-        sub: 'Activation codes available to send to vendors',
-        icon: '<rect x="3" y="7" width="18" height="14" rx="2"></rect><path d="M16 3H8v4h8V3z"></path>'
-      },
-      {
-        label: 'Ambassador requests',
-        value: String(pendingAmbassadors),
-        sub: 'New ambassador applications waiting review',
-        icon: '<path d="M12 5a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm0 10c-4.418 0-8 1.79-8 4v2h16v-2c0-2.21-3.582-4-8-4z"></path>'
-      }
-    ].map(card => `
-      <article class="summary-card">
-        <div class="summary-card-header">
-          <div class="summary-label">${escapeHtml(card.label)}</div>
-          <div class="summary-icon"><svg viewBox="0 0 24 24">${card.icon}</svg></div>
-        </div>
-        <div class="summary-value">${escapeHtml(card.value)}</div>
-        <div class="summary-sub">${escapeHtml(card.sub)}</div>
-      </article>
-    `).join('');
-  }
-
-  function renderAmbassadorApplications() {
-    const list = byId('ambassadorRequestsList');
-    if (!list) return;
-
-    if (!state.ambassadorApplications.length) {
-      list.innerHTML = '<div class="empty-state"><strong>No ambassador applications pending</strong><div>New ambassador applications will appear here once users apply.</div></div>';
-      return;
+function renderSummary() {
+     if (!byId('adminSummary')) return;
+     const activeStores = state.accounts.filter(row => row.subscription_status === 'active').length;
+     const pendingWithdrawals = state.withdrawals.filter(row => row.status === 'pending').length;
+     const unusedCodes = state.activationCodes.filter(row => row.status === 'unused').length;
+     const pendingAmbassadorRequests = state.ambassadorRequests.filter(row => row.status === 'pending').length;
+     const totalVendors = state.accounts.length;
+ 
+     byId('adminSummary').innerHTML = [
+       {
+         label: 'Total vendors',
+         value: String(totalVendors),
+         sub: 'Seller accounts currently in the project',
+         icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>'
+       },
+       {
+         label: 'Active stores',
+         value: String(activeStores),
+         sub: 'Stores currently live and shareable',
+         icon: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>'
+       },
+       {
+         label: 'Pending withdrawals',
+         value: String(pendingWithdrawals),
+         sub: 'Referral payout requests awaiting review',
+         icon: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>'
+       },
+       {
+         label: 'Unused codes',
+         value: String(unusedCodes),
+         sub: 'Activation codes available to send to vendors',
+         icon: '<rect x="3" y="7" width="18" height="14" rx="2"></rect><path d="M16 3H8v4h8V3z"></path>'
+       },
+       {
+         label: 'Ambassador requests',
+         value: String(pendingAmbassadorRequests),
+         sub: 'New ambassador applications waiting review',
+         icon: '<path d="M12 5a4 4 0 0 1 0 8 4 4 0 0 1 0-8zm0 10c-4.418 0-8 1.79-8 4v2h16v-2c0-2.21-3.582-4-8-4z"></path>'
+       }
+     ].map(card => `
+       <article class="summary-card">
+         <div class="summary-card-header">
+           <div class="summary-label">${escapeHtml(card.label)}</div>
+           <div class="summary-icon"><svg viewBox="0 0 24 24">${card.icon}</svg></div>
+         </div>
+         <div class="summary-value">${escapeHtml(card.value)}</div>
+         <div class="summary-sub">${escapeHtml(card.sub)}</div>
+       </article>
+`).join('');
     }
 
-    list.innerHTML = state.ambassadorApplications.map(row => `
-      <article class="admin-card">
-        <div class="admin-card-top">
-          <div>
-            <div class="admin-card-title">${escapeHtml(row.name || 'Applicant')}</div>
-            <div class="admin-card-sub">${escapeHtml(row.username || 'No username')}</div>
-            <div class="admin-card-sub">${escapeHtml(row.email || 'No email')}</div>
-            <div class="admin-card-sub">${escapeHtml(row.phone || 'No phone')}</div>
-          </div>
-          <span class="status-chip pending">${escapeHtml(row.ambassador_status || 'pending')}</span>
-        </div>
-        <div class="admin-actions">
-          <button class="btn btn-primary btn-sm" type="button" data-action="ambassador-status" data-user-id="${escapeHtml(row.user_id)}" data-status="accepted">Accept</button>
-          <button class="btn btn-light-danger btn-sm" type="button" data-action="ambassador-status" data-user-id="${escapeHtml(row.user_id)}" data-status="declined">Decline</button>
-        </div>
-      </article>
-    `).join('');
-  }
+  function renderAmbassadorRequests() {
+     const list = byId('ambassadorRequestsList');
+     if (!list) return;
+ 
+     if (!state.ambassadorRequests.length) {
+       list.innerHTML = '<div class="empty-state"><strong>No ambassador requests pending</strong><div>When vendors submit new ambassador requests, they will appear here.</div></div>';
+       return;
+     }
+ 
+     list.innerHTML = state.ambassadorRequests.map(row => `
+       <article class="admin-card">
+         <div class="admin-card-top">
+           <div>
+             <div class="admin-card-title">${escapeHtml(row.vendor_name || 'Vendor')}</div>
+             <div class="admin-card-sub">${escapeHtml(row.store_name || 'Store not set')}</div>
+             <div class="admin-card-sub">${escapeHtml(row.email || 'No email on file')}</div>
+           </div>
+           <span class="status-chip ${row.status === 'approved' ? 'active' : row.status === 'declined' ? 'expired' : 'inactive'}">${escapeHtml(row.status)}</span>
+         </div>
+         <div class="admin-meta-grid">
+           <div class="admin-meta-item">
+             <div class="admin-meta-label">Applied</div>
+             <div class="admin-meta-value">${escapeHtml(formatDate(row.applied_at))}</div>
+           </div>
+           <div class="admin-meta-item">
+             <div class="admin-meta-label">Reviewed</div>
+             <div class="admin-meta-value">${escapeHtml(row.reviewed_at ? formatDate(row.reviewed_at) : 'Pending review')}</div>
+           </div>
+         </div>
+         ${row.status === 'pending' ? `
+           <div class="admin-actions">
+             <button class="btn btn-primary btn-sm" type="button" data-action="ambassador-request" data-request-id="${escapeHtml(row.request_id)}" data-status="approved">Approve</button>
+             <button class="btn btn-light-danger btn-sm" type="button" data-action="ambassador-request" data-request-id="${escapeHtml(row.request_id)}" data-status="declined">Decline</button>
+           </div>
+         ` : ''}
+       </article>
+     `).join('');
+   }
 
   function renderWithdrawals() {
     const list = byId('withdrawalsList');
@@ -336,31 +348,32 @@
     }).join('');
   }
 
-  async function loadAdminData() {
-    const client = await window.waitForSupabaseClient();
-    const [accountsResponse, withdrawalsResponse, codesResponse, applicationsResponse] = await Promise.all([
-      client.rpc('admin_vendor_accounts'),
-      client.rpc('admin_withdrawal_requests'),
-      client.from('activation_codes').select('*').order('created_at', { ascending: false }).limit(50),
-      client.rpc('admin_ambassador_applications')
-    ]);
-
-    if (accountsResponse.error) throw accountsResponse.error;
-    if (withdrawalsResponse.error) throw withdrawalsResponse.error;
-    if (codesResponse.error) throw codesResponse.error;
-    if (applicationsResponse.error) throw applicationsResponse.error;
-
-    state.accounts = accountsResponse.data || [];
-    state.withdrawals = withdrawalsResponse.data || [];
-    state.activationCodes = codesResponse.data || [];
-    state.ambassadorApplications = applicationsResponse.data || [];
-
-    renderSummary();
-    renderAmbassadorApplications();
-    renderWithdrawals();
-    renderActivationCodes();
-    renderAccounts();
-  }
+async function loadAdminData() {
+      const client = await window.waitForSupabaseClient();
+      const [accountsResponse, withdrawalsResponse, codesResponse, ambassadorApplicationsResponse, ambassadorRequestsResponse] = await Promise.all([
+        client.rpc('admin_vendor_accounts'),
+        client.rpc('admin_withdrawal_requests'),
+        client.from('activation_codes').select('*').order('created_at', { ascending: false }).limit(50),
+        client.rpc('admin_ambassador_applications').catch(() => ({ data: [] })),
+        client.rpc('admin_ambassador_requests').catch(() => ({ data: [] }))
+      ]);
+  
+      if (accountsResponse.error) throw accountsResponse.error;
+      if (withdrawalsResponse.error) throw withdrawalsResponse.error;
+      if (codesResponse.error) throw codesResponse.error;
+  
+      state.accounts = accountsResponse.data || [];
+      state.withdrawals = withdrawalsResponse.data || [];
+      state.activationCodes = codesResponse.data || [];
+      state.ambassadorApplications = ambassadorApplicationsResponse.data || [];
+      state.ambassadorRequests = ambassadorRequestsResponse.data || [];
+  
+      renderSummary();
+      renderWithdrawals();
+      renderActivationCodes();
+      renderAccounts();
+      renderAmbassadorRequests();
+    }
 
   async function refreshAdminData() {
     try {
@@ -457,6 +470,21 @@
     }
   }
 
+  async function reviewAmbassadorRequest(requestId, status) {
+    try {
+      const client = await window.waitForSupabaseClient();
+      const { error } = await client.rpc('admin_review_ambassador_request', {
+        p_request_id: requestId,
+        p_status: status
+      });
+      if (error) throw error;
+      await refreshAdminData();
+      showToast(`Ambassador request ${status}.`);
+    } catch (err) {
+      showToast(err.message || 'Could not update ambassador request.', 'error');
+    }
+  }
+
   async function voidCode(codeId) {
     try {
       const client = await window.waitForSupabaseClient();
@@ -470,6 +498,44 @@
     } catch (err) {
       showToast(err.message || 'Could not void that code.', 'error');
     }
+  }
+
+  function showAdminSection(sectionId) {
+    document.querySelectorAll('[id$="Section"]').forEach(section => {
+      section.style.display = section.id === sectionId ? 'block' : 'none';
+    });
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.classList.toggle('active', link.dataset.adminPage === document.body.dataset.adminPage ||
+        (sectionId === 'overviewSection' && !link.dataset.adminPage));
+    });
+    renderSummary();
+    if (sectionId === 'ambassadorRequestsSection') {
+      renderAmbassadorRequests();
+    }
+  }
+
+  function wireTabNavigation() {
+    document.body.addEventListener('click', event => {
+      const navTarget = event.target.closest('[data-admin-page]');
+      if (!navTarget) return;
+
+      event.preventDefault();
+      const page = navTarget.dataset.adminPage;
+      document.body.dataset.adminPage = page;
+
+      const sectionMap = {
+        overview: 'overviewSection',
+        ambassadors: 'ambassadorRequestsSection',
+        withdrawals: 'withdrawalsSection',
+        codes: 'codesSection',
+        accounts: 'accountsSection'
+      };
+
+      const targetSection = sectionMap[page];
+      if (targetSection) {
+        showAdminSection(targetSection);
+      }
+    });
   }
 
   function wireInteractions() {
@@ -516,6 +582,9 @@
       if (action === 'ambassador-status') {
         await updateAmbassadorStatus(actionTarget.dataset.userId, actionTarget.dataset.status);
       }
+      if (action === 'ambassador-request') {
+        await reviewAmbassadorRequest(actionTarget.dataset.requestId, actionTarget.dataset.status);
+      }
       if (action === 'void-code') {
         await voidCode(actionTarget.dataset.codeId);
       }
@@ -523,6 +592,7 @@
   }
 
   async function init() {
+    wireTabNavigation();
     wireInteractions();
     await window.VendlyAuth.restoreSession().catch(() => false);
     state.user = await window.VendlyAuth.refreshUser().catch(() => window.VendlyAuth.getUser()) || window.VendlyAuth.getUser();

@@ -168,6 +168,13 @@ function renderAmbassadorNav() {
   const existing = sidebarNav.querySelector('[data-ambassador-entry]');
   if (existing) existing.remove();
 
+  // Check if user is admin - if so, hide ambassador button entirely
+  const isAdmin = window.VendlyPortal?.getIsAdmin?.() || Auth.getUser()?.isAdmin || false;
+  if (isAdmin) {
+    // Admin users should not see ambassador options
+    return;
+  }
+
   const user = Auth.getUser() || Auth.getCachedUser();
   const status = getAmbassadorStatus(user);
   const referralLink = sidebarNav.querySelector('a[href="referral.html"]');
@@ -1028,14 +1035,16 @@ function wireLogout() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  wirePageLoader();
-  await Auth.restoreSession();
-  await runGuards();
-  wireNavAttributes();
-  renderAmbassadorNav();
-  wireLogout();
+   wirePageLoader();
+   await Auth.restoreSession();
+   await runGuards();
+   wireNavAttributes();
+   wireLogout();
+   // Ambassador nav is rendered after admin status is confirmed in portal init()
+   // to avoid flashing the button for admin users
 });
 
 window.VendlyNav = Nav;
+window.VendlyNav.renderAmbassadorNav = renderAmbassadorNav;
 window.VendlyAuth = Auth;
 window.VendlyStores = Stores;

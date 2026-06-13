@@ -148,7 +148,26 @@ create table if not exists public.withdrawal_requests (
   admin_note text
 );
 
-create table if not exists public.activation_codes (
+ create table if not exists public.ambassador_requests (
+   id uuid primary key default gen_random_uuid(),
+   owner_id uuid not null references auth.users(id) on delete cascade,
+   store_id uuid references public.stores(id) on delete set null,
+   status text not null default 'pending',
+   applied_at timestamptz not null default now(),
+   reviewed_at timestamptz,
+   reviewed_by uuid references auth.users(id) on delete set null
+ );
+
+ create table if not exists public.ambassador_earnings (
+   id uuid primary key default gen_random_uuid(),
+   ambassador_id uuid not null references auth.users(id) on delete cascade,
+   referred_user_id uuid references auth.users(id) on delete set null,
+   amount numeric not null,
+   status text not null default 'cleared',
+   earned_at timestamptz not null default now()
+ );
+
+ create table if not exists public.activation_codes (
   id uuid primary key default gen_random_uuid(),
   code text not null unique,
   status text not null default 'unused',
@@ -181,10 +200,10 @@ begin
 end $$;
 
 create table if not exists public.admin_users (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid unique references auth.users(id) on delete cascade,
-  email text unique,
-  created_at timestamptz not null default now()
+   id uuid primary key default gen_random_uuid(),
+   user_id uuid unique references auth.users(id) on delete cascade,
+   email text unique,
+   created_at timestamptz not null default now()
 );
 
 create or replace function public.update_timestamp()
@@ -424,12 +443,40 @@ as $$
   ),
   reserved as (
     select coalesce(sum(amount), 0) as total
+from public.withdrawal_requests
+     where owner_id = p_owner_id
+       and source = 'referral'
+       and status in ('pending', 'approved', 'paid')
+   )
+   select greatest((select total from earned) - (select total from reserved), 0);
+ $$;
+
+-- ============================================================
+-- RPC: ambassador_available_balance(p_owner_id)
+-- ============================================================
+-- Returns the amount an ambassador can withdraw from cleared earnings
+-- minus any pending/approved/paid withdrawal requests for ambassador source
+create or replace function public.ambassador_available_balance(p_owner_id uuid default auth.uid())
+returns numeric
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  with cleared_earnings as (
+    select coalesce(sum(amount), 0) as total
+    from public.ambassador_earnings
+    where ambassador_id = p_owner_id
+      and status = 'cleared'
+  ),
+  reserved_withdrawals as (
+    select coalesce(sum(amount), 0) as total
     from public.withdrawal_requests
     where owner_id = p_owner_id
-      and source = 'referral'
+      and source = 'ambassador'
       and status in ('pending', 'approved', 'paid')
   )
-  select greatest((select total from earned) - (select total from reserved), 0);
+  select greatest((select total from cleared_earnings) - (select total from reserved_withdrawals), 0);
 $$;
 
 create or replace function public.activate_referral_signup_for_referred_user(
@@ -532,16 +579,56 @@ as $$
     lower(coalesce(u.email, u.user_metadata->>'email')) as email,
     coalesce(u.user_metadata->>'phone', '') as phone,
     coalesce(u.ambassador_status, 'none') as ambassador_status,
-    u.created_at as applied_at
-  from auth.users u
-  left join public.profiles p on p.id = u.id
-  where coalesce(u.ambassador_status, 'none') = 'pending'
-  order by u.created_at desc;
+u.created_at as applied_at
+   from auth.users u
+   left join public.profiles p on p.id = u.id
+   where coalesce(u.ambassador_status, 'none') = 'pending'
+   order by u.created_at desc;
+ $$;
+
+-- ============================================================
+-- RPC: admin_ambassador_requests()
+-- ============================================================
+-- Returns all pending ambassador applications with vendor/store details
+create or replace function public.admin_ambassador_requests()
+returns table(
+  request_id uuid,
+  owner_id uuid,
+  vendor_name text,
+  store_id uuid,
+  store_name text,
+  email text,
+  status text,
+  applied_at timestamptz,
+  reviewed_at timestamptz
+)
+language sql
+security definer
+set search_path = public
+as $$
+  select
+    ar.id,
+    ar.owner_id,
+    coalesce(p.first_name || ' ' || p.last_name, 'User') as vendor_name,
+    ar.store_id,
+    s.name as store_name,
+    au.email,
+    ar.status,
+    ar.applied_at,
+    ar.reviewed_at
+  from public.ambassador_requests ar
+  left join public.profiles p on p.id = ar.owner_id
+  left join public.stores s on s.id = ar.store_id
+  left join auth.users au on au.id = ar.owner_id
+  order by ar.applied_at desc;
 $$;
 
--- Admin RPC: set ambassador status for a user
-create or replace function public.admin_set_ambassador_status(
-  p_user_id uuid,
+-- ============================================================
+-- RPC: admin_review_ambassador_request(p_request_id, p_status)
+-- ============================================================
+-- Admin-only function to approve or decline an ambassador request
+create or replace function public.admin_review_ambassador_request(
+  p_request_id uuid,
   p_status text
 )
 returns void
@@ -551,16 +638,19 @@ set search_path = public
 as $$
 begin
   if not public.is_admin() then
-    raise exception 'You do not have access to update ambassador status.';
+    raise exception 'Only admins can review ambassador requests';
   end if;
 
-  if p_status not in ('none','pending','accepted','declined') then
-    raise exception 'Invalid ambassador status.';
+  if p_status not in ('approved', 'declined') then
+    raise exception 'Status must be approved or declined';
   end if;
 
-  update auth.users
-  set ambassador_status = p_status
-  where id = p_user_id;
+  update public.ambassador_requests
+  set
+    status = p_status,
+    reviewed_at = now(),
+    reviewed_by = auth.uid()
+  where id = p_request_id;
 end;
 $$;
 
@@ -568,7 +658,8 @@ create or replace function public.create_withdrawal_request(
   p_amount numeric,
   p_bank_name text,
   p_account_number text,
-  p_account_name text
+  p_account_name text,
+  p_source text default 'referral'
 )
 returns public.withdrawal_requests
 language plpgsql
@@ -579,6 +670,7 @@ declare
   available_balance numeric;
   request_row public.withdrawal_requests;
   owner_store_id uuid;
+  normalized_source text;
 begin
   if auth.uid() is null then
     raise exception 'You must be signed in to request a withdrawal.';
@@ -588,15 +680,26 @@ begin
     raise exception 'Minimum withdrawal is NGN 1,000.';
   end if;
 
+  normalized_source := lower(trim(coalesce(p_source, 'referral')));
+  if normalized_source not in ('referral', 'ambassador') then
+    normalized_source := 'referral';
+  end if;
+
   if nullif(trim(coalesce(p_bank_name, '')), '') is null
      or nullif(trim(coalesce(p_account_number, '')), '') is null
      or nullif(trim(coalesce(p_account_name, '')), '') is null then
     raise exception 'Complete the bank name, account number, and account name fields.';
   end if;
 
-  available_balance := public.referral_available_balance(auth.uid());
+  if normalized_source = 'ambassador' then
+    available_balance := public.ambassador_available_balance(auth.uid());
+  else
+    available_balance := public.referral_available_balance(auth.uid());
+  end if;
+
   if p_amount > available_balance then
-    raise exception 'Your available referral balance is not enough for this withdrawal request.';
+    raise exception 'Your available % balance is not enough for this withdrawal request.', 
+      case when normalized_source = 'ambassador' then 'ambassador' else 'referral' end;
   end if;
 
   select id
@@ -618,7 +721,7 @@ begin
   values (
     auth.uid(),
     owner_store_id,
-    'referral',
+    normalized_source,
     p_amount,
     trim(p_bank_name),
     trim(p_account_number),
@@ -1137,85 +1240,13 @@ begin
 end;
 $$;
 
-drop function if exists public.admin_ambassador_applications();
-create or replace function public.admin_ambassador_applications()
-returns table (
-  user_id uuid,
-  name text,
-  username text,
-  email text,
-  phone text,
-  ambassador_status text
-)
-language sql
-security definer
-set search_path = public
-as $$
-  select
-    u.id as user_id,
-    coalesce(nullif(trim(coalesce(p.first_name, '') || ' ' || coalesce(p.last_name, '')), ''), s.name, lower(coalesce(u.email, '')), 'Vendor') as name,
-    coalesce(
-      nullif(trim(u.user_metadata ->> 'username'), ''),
-      nullif(trim(s.slug), ''),
-      lower(split_part(coalesce(u.email, ''), '@', 1)),
-      u.id::text
-    ) as username,
-    lower(coalesce(u.email, '')) as email,
-    coalesce(
-      nullif(trim(u.user_metadata ->> 'phone'), ''),
-      nullif(trim(u.phone), ''),
-      nullif(trim(s.whatsapp), ''),
-      ''
-    ) as phone,
-    coalesce(u.ambassador_status, 'none') as ambassador_status
-  from auth.users u
-  left join public.profiles p on p.id = u.id
-  left join public.stores s on s.owner_id = u.id
-  where public.is_admin()
-    and u.ambassador_status = 'pending'
-  order by u.email nulls last;
-$$;
-
-create or replace function public.admin_set_ambassador_status(
-  p_user_id uuid,
-  p_status text
-)
-returns auth.users
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  normalized_status text := lower(trim(coalesce(p_status, '')));
-  updated_user auth.users%rowtype;
-begin
-  if not public.is_admin() then
-    raise exception 'You do not have access to update ambassador applications.';
-  end if;
-
-  if normalized_status not in ('none', 'pending', 'accepted', 'declined') then
-    raise exception 'Unsupported ambassador status: %', normalized_status;
-  end if;
-
-  update auth.users
-  set ambassador_status = normalized_status
-  where id = p_user_id
-  returning * into updated_user;
-
-  if updated_user.id is null then
-    raise exception 'Ambassador user not found.';
-  end if;
-
-  return updated_user;
-end;
-$$;
-
 grant execute on function public.is_admin() to anon, authenticated;
 grant execute on function public.bootstrap_admin_access() to authenticated;
 grant execute on function public.ensure_my_referral_code(text) to authenticated;
 grant execute on function public.register_referral_signup(text, uuid, text, text, text) to anon, authenticated;
 grant execute on function public.referral_available_balance(uuid) to authenticated;
-grant execute on function public.create_withdrawal_request(numeric, text, text, text) to authenticated;
+grant execute on function public.ambassador_available_balance(uuid) to authenticated;
+grant execute on function public.create_withdrawal_request(numeric, text, text, text, text) to authenticated;
 grant execute on function public.log_store_view(uuid, uuid, text, text, text, text) to anon, authenticated;
 grant execute on function public.log_product_view(uuid, uuid, uuid, text) to anon, authenticated;
 grant execute on function public.create_storefront_order(uuid, uuid, jsonb, numeric, text, text, text, text) to anon, authenticated;
@@ -1223,6 +1254,8 @@ grant execute on function public.redeem_activation_code(text) to authenticated;
 grant execute on function public.apply_for_ambassador() to authenticated;
 grant execute on function public.get_my_ambassador_status() to authenticated;
 grant execute on function public.admin_ambassador_applications() to authenticated;
+grant execute on function public.admin_ambassador_requests() to authenticated;
+grant execute on function public.admin_review_ambassador_request(uuid, text) to authenticated;
 grant execute on function public.admin_set_ambassador_status(uuid, text) to authenticated;
 grant execute on function public.admin_generate_activation_code(text, text, numeric, text) to authenticated;
 grant execute on function public.admin_activate_vendor_subscription(uuid, text, timestamptz) to authenticated;
@@ -1243,6 +1276,8 @@ alter table public.referral_signups enable row level security;
 alter table public.withdrawal_requests enable row level security;
 alter table public.activation_codes enable row level security;
 alter table public.admin_users enable row level security;
+alter table public.ambassador_requests enable row level security;
+alter table public.ambassador_earnings enable row level security;
 
 drop policy if exists "stores public read" on public.stores;
 create policy "stores public read" on public.stores
@@ -1353,6 +1388,28 @@ using (user_id = auth.uid() or public.is_admin());
 
 drop policy if exists "admin users admin manage" on public.admin_users;
 create policy "admin users admin manage" on public.admin_users
+for all
+using (public.is_admin())
+with check (public.is_admin());
+
+drop policy if exists "ambassador requests admin read" on public.ambassador_requests;
+create policy "ambassador requests admin read" on public.ambassador_requests
+for select
+using (public.is_admin());
+
+drop policy if exists "ambassador requests admin manage" on public.ambassador_requests;
+create policy "ambassador requests admin manage" on public.ambassador_requests
+for all
+using (public.is_admin())
+with check (public.is_admin());
+
+drop policy if exists "ambassador earnings admin read" on public.ambassador_earnings;
+create policy "ambassador earnings admin read" on public.ambassador_earnings
+for select
+using (public.is_admin());
+
+drop policy if exists "ambassador earnings admin manage" on public.ambassador_earnings;
+create policy "ambassador earnings admin manage" on public.ambassador_earnings
 for all
 using (public.is_admin())
 with check (public.is_admin());

@@ -140,11 +140,67 @@
       font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
     }
 
-    @media (max-width: 900px) {
-      .admin-card-top {
-        flex-direction: column;
-      }
-    }
+@media (max-width: 900px) {
+       .admin-card-top {
+         flex-direction: column;
+       }
+     }
+ 
+     @media (max-width: 768px) {
+       .portal-sidebar {
+         transform: translateX(-100%);
+         transition: transform 0.24s ease;
+         z-index: 40;
+       }
+ 
+       body.sidebar-open .portal-sidebar {
+         transform: translateX(0);
+       }
+ 
+       .sidebar-backdrop {
+         position: fixed;
+         inset: 0;
+         border: none;
+         background: rgba(11, 20, 13, 0.45);
+         z-index: 35;
+         display: none;
+       }
+ 
+       body.sidebar-open .sidebar-backdrop {
+         display: block;
+       }
+ 
+       .portal-main {
+         margin-left: 0;
+       }
+     }
+ 
+     @media (max-width: 600px) {
+       .stats-grid {
+         grid-template-columns: 1fr;
+       }
+     }
+ 
+     @media (max-width: 480px) {
+       .topbar-actions {
+         flex-direction: column;
+         align-items: stretch;
+       }
+ 
+       .topbar-actions .btn {
+         width: 100%;
+       }
+     }
+ 
+     .table-wrap {
+       overflow-x: auto;
+       width: 100%;
+     }
+ 
+     .table-wrap table {
+       min-width: 600px;
+       width: 100%;
+     }
   </style>
 </head>
 <body data-admin-page="overview">
@@ -159,6 +215,7 @@
           <a class="sidebar-link active" href="ADMIN.html"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="7" height="9" rx="1"></rect><rect x="15" y="3" width="7" height="5" rx="1"></rect><rect x="15" y="12" width="7" height="9" rx="1"></rect><rect x="2" y="16" width="7" height="5" rx="1"></rect></svg><span>Overview</span></a>
           <a class="sidebar-link" href="admin-withdrawals.html"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span>Withdrawals</span></a>
           <a class="sidebar-link" href="admin-codes.html"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="14" rx="2"></rect><path d="M16 3H8v4h8V3z"></path></svg><span>Activation Codes</span></a>
+          <a class="sidebar-link" href="#ambassadorRequests" data-admin-page="ambassadors"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span>Ambassador Requests</span></a>
           <a class="sidebar-link" href="admin-accounts.html"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span>Accounts</span></a>
         </nav>
       </div>
@@ -262,6 +319,16 @@
                   </div>
                 </form>
                 <div class="admin-list" id="activationCodesList" style="margin-top:18px;"></div>
+              </section>
+
+              <section class="panel" style="display:none;" id="ambassadorRequestsSection">
+                <div class="panel-header">
+                  <div>
+                    <h2 class="panel-title">Ambassador requests</h2>
+                    <div class="panel-subtitle">Review applications from vendors who want to become ambassadors and earn recurring commission.</div>
+                  </div>
+                </div>
+                <div class="admin-list" id="ambassadorRequestsList"></div>
               </section>
 
               <section class="panel" style="display:none;" id="accountsSection">
