@@ -354,8 +354,8 @@ async function loadAdminData() {
         client.rpc('admin_vendor_accounts'),
         client.rpc('admin_withdrawal_requests'),
         client.from('activation_codes').select('*').order('created_at', { ascending: false }).limit(50),
-        client.rpc('admin_ambassador_applications').catch(() => ({ data: [] })),
-        client.rpc('admin_ambassador_requests').catch(() => ({ data: [] }))
+        Promise.resolve(client.rpc('admin_ambassador_applications')).catch(() => ({ data: [] })),
+        Promise.resolve(client.rpc('admin_ambassador_requests')).catch(() => ({ data: [] }))
       ]);
   
       if (accountsResponse.error) throw accountsResponse.error;
