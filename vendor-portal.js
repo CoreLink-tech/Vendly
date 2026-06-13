@@ -1787,7 +1787,7 @@ function wireShell() {
 }
 
 function wirePageEvents() {
-    document.body.addEventListener('click', event => {
+    document.body.addEventListener('click', async event => {
       const productAction = event.target.closest('[data-action="edit-product"], [data-action="toggle-product"], [data-action="delete-product"], [data-action="confirm-delete-product"], [data-action="cancel-delete-product"]');
       if (productAction) {
         const productId = productAction.dataset.productId;
