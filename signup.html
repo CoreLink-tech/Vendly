@@ -865,7 +865,7 @@
             <div class="field-group">
                 <label class="field-label">Store link <span class="field-required">*</span></label>
                 <div class="slug-wrap" id="slugWrap">
-                    <div class="slug-prefix">vendly-snowy.vercel.app/</div>
+                    <div class="slug-prefix" id="slugPrefix">vendly-snowy.vercel.app/</div>
                     <input type="text" class="slug-input" id="storeSlug" placeholder="store-link" oninput="checkSlug(this.value)">
                 </div>
                 <div class="slug-status checking" id="slugStatus" style="display:none">
@@ -980,7 +980,7 @@
         <div class="success-title">Your store is live.</div>
         <div class="success-sub">Share your link and start receiving orders on WhatsApp. You can add products from your dashboard.</div>
         <div class="success-link-box">
-            <div class="success-link-text">vendly-snowy.vercel.app/<span id="successSlug">yourstore</span></div>
+            <div class="success-link-text"><span id="successHost">vendly-snowy.vercel.app</span>/<span id="successSlug">yourstore</span></div>
             <button class="copy-btn" onclick="copyStoreLink()">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
@@ -1014,6 +1014,8 @@
     let slugCheckToken = 0;
     const RESERVED_SLUGS = new Set(['shop', 'store', 'vendly', 'admin']);
     const DISPLAY_HOST = window.VendlyStores?.APP_DISPLAY_HOST || 'vendly-snowy.vercel.app';
+    document.getElementById('slugPrefix').textContent = DISPLAY_HOST + '/';
+    document.getElementById('successHost').textContent = DISPLAY_HOST;
     const referralCodeFromUrl = new URLSearchParams(window.location.search).get('ref')?.trim().toUpperCase() || '';
 
     // SLUG GENERATOR
@@ -1161,13 +1163,24 @@
     async function handleSubmit(e) {
         e.preventDefault();
 
-        const firstName = document.getElementById('firstName').value.trim();
-        const lastName = document.getElementById('lastName').value.trim();
-        const storeName = document.getElementById('storeName').value.trim();
+        const rawFirstName = document.getElementById('firstName').value;
+        const rawLastName = document.getElementById('lastName').value;
+        const rawStoreName = document.getElementById('storeName').value;
         const slug = document.getElementById('storeSlug').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const phone = document.getElementById('whatsapp').value.trim();
+        const rawEmail = document.getElementById('email').value;
+        const rawPhone = document.getElementById('whatsapp').value;
         const password = document.getElementById('password').value;
+
+        const safeFirstName = rawFirstName.replace(/<[^>]*>/g, '').trim().slice(0, 100);
+        const safeLastName = rawLastName.replace(/<[^>]*>/g, '').trim().slice(0, 100);
+        const safeStoreName = rawStoreName.replace(/<[^>]*>/g, '').trim().slice(0, 100);
+        const safePhone = rawPhone.replace(/[^0-9+\-\s]/g, '').trim().slice(0, 20);
+
+        const firstName = safeFirstName;
+        const lastName = safeLastName;
+        const storeName = safeStoreName;
+        const phone = safePhone;
+        const email = rawEmail.trim();
 
         let valid = true;
 

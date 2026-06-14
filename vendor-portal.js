@@ -2,8 +2,8 @@
   const STORAGE_BUCKET = 'vendor-images';
   const TOAST_MS = 3200;
   const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp', 'image/heic', 'image/heif'];
-  const PRODUCT_IMAGE_MAX_WIDTH = 1200;
-  const PRODUCT_IMAGE_WEBP_QUALITY = 0.85;
+  const PRODUCT_IMAGE_MAX_WIDTH = 900;
+  const PRODUCT_IMAGE_WEBP_QUALITY = 0.78;
   const imageSizeCache = new Map();
 
   function getCurrentPage() {
@@ -81,6 +81,15 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  function sanitizeInput(value) {
+    if (typeof value !== 'string') return '';
+    return value
+      .trim()
+      .replace(/<[^>]*>/g, '')
+      .replace(/['"`;]/g, '')
+      .slice(0, 2000);
   }
 
   function isAcceptedImageFile(file) {
@@ -1495,19 +1504,18 @@ function renderStoreBanner() {
   async function saveProduct(event) {
     event.preventDefault();
 
-    const name = byId('productName').value.trim();
-    const price = Number(byId('productPrice').value || 0);
-    const description = byId('productDescription').value.trim();
+    const rawName = byId('productName').value;
+    const rawDescription = byId('productDescription').value;
+    const rawPrice = byId('productPrice').value;
     const status = byId('productStatus').value;
     const editingId = byId('productId').value;
 
-    if (!name) {
-      showToast('Enter a product name before saving.', 'error');
-      return;
-    }
+    const safeName = sanitizeInput(rawName);
+    const safeDescription = sanitizeInput(rawDescription);
+    const safePrice = parseFloat(rawPrice) || 0;
 
-    if (!price || price <= 0) {
-      showToast('Enter a valid price before saving.', 'error');
+    if (!safeName) {
+      showToast('Product name is required.', 'error');
       return;
     }
 
@@ -1530,9 +1538,9 @@ function renderStoreBanner() {
     }
 
     const basePayload = {
-      name,
-      description,
-      price,
+      name: safeName,
+      description: safeDescription,
+      price: safePrice,
       status,
       owner_id: state.user?.id || null
     };

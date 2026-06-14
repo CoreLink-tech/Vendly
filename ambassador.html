@@ -1,41 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Vendly - Ambassador</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script src="supabase.js"></script>
-  <script src="vendly-nav.js"></script>
-  <script src="vendly-stores.js"></script>
-  <script src="referral-portal.js" defer></script>
-    <script>
-        // Ambassador landing forwards to the referral UI which contains the earnings and withdrawal flow.
-        // The nav will present this link as "Ambassador" for accepted users.
-        if (window.location.pathname.split('/').pop() !== 'referral.html') {
-            window.location.href = 'referral.html';
-        }
-    </script>
-  <style>
-    body { font-family: 'Outfit', sans-serif; margin:0; }
-    .page { padding: 28px; max-width: 980px; margin: 0 auto; }
-    .page h1 { font-size: 1.6rem; margin-bottom: 6px; }
-    .page p { color: #6b7280; margin-bottom: 18px; }
-  </style>
-</head>
-<body>
-  <div class="page">
-    <h1>Ambassador dashboard</h1>
-    <p>Share your referral link, view your earnings, and request withdrawals — same flow as referrals.</p>
 
-    <div id="referralAppRoot">
-      <!-- referral-portal.js will populate the page (same UI as referral page) -->
-    </div>
-  </div>
-</body>
-</html>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -962,10 +925,7 @@
     </svg>
     <span id="toastMsg">Done</span>
 </div>
-
-<script src="referral-portal.js"></script>
-
-
+<script src="ambassador-portal.js"></script>
 </body>
 </html>
 
